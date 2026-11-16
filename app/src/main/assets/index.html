@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#070709" />
+  <meta name="theme-color" content="#080B13" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>BitAnime — Premium Anime Vault</title>
@@ -758,9 +758,266 @@
       }
     }
 
+
+    /* BITANIME 1.2 — DISTINCT CINEMA INTERFACE
+       Midnight Navy / Violet / Cyan. Existing IDs and JS hooks are preserved. */
+    :root {
+      --bg-base:#080B13; --bg-elevated:#111827;
+      --accent-cr:#9585FF; --accent-gold:#63D6E6;
+      --ambient-1:#5146B8; --ambient-2:#15566C;
+      --brand-violet:#9585FF; --brand-cyan:#63D6E6;
+      --brand-surface:#111827; --brand-raised:#182236;
+      --brand-text:#F4F6FC; --brand-muted:#96A3B8;
+      --ui-amber:#9585FF; --ui-orange:#9585FF; --ui-purple:#9585FF;
+      --ui-line:rgba(177,190,218,.12); --ui-muted:#96A3B8;
+    }
+    html { background:var(--bg-base); }
+    body {
+      background-color:var(--bg-base)!important;
+      background-image:
+        radial-gradient(ellipse at 7% 8%,rgba(111,91,235,.14),transparent 34%),
+        radial-gradient(ellipse at 94% 24%,rgba(41,173,197,.10),transparent 31%),
+        linear-gradient(180deg,#080B13 0%,#0A1020 48%,#080B13 100%)!important;
+      color:var(--brand-text);
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    ::selection { background:rgba(149,133,255,.34); color:#fff; }
+    .ambient-backdrop {
+      opacity:.12!important; filter:blur(64px)!important;
+      background:radial-gradient(circle at 20% 15%,rgba(113,94,244,.42),transparent 48%),
+                 radial-gradient(circle at 82% 32%,rgba(67,194,218,.28),transparent 52%)!important;
+    }
+    .app-header {
+      background:rgba(8,11,19,.94)!important;
+      border-bottom:1px solid rgba(149,133,255,.14)!important;
+      box-shadow:0 8px 26px rgba(0,0,0,.22)!important;
+      backdrop-filter:blur(15px) saturate(130%)!important;
+      -webkit-backdrop-filter:blur(15px) saturate(130%)!important;
+    }
+    .brand-icon {
+      background:linear-gradient(145deg,#A99DFF 0%,#7667E8 58%,#4B4D9E 100%)!important;
+      border:1px solid rgba(214,208,255,.28)!important;
+      box-shadow:0 6px 20px rgba(116,102,232,.22),inset 0 1px 0 rgba(255,255,255,.28)!important;
+    }
+    .brand-title { letter-spacing:-.045em; }
+    .app-header .text-orange-400,.app-header .text-orange-300 { color:#B9B0FF!important; }
+    #searchInput {
+      color:#F4F6FC!important; background:#111827!important;
+      border:1px solid rgba(166,179,208,.16)!important; border-radius:13px!important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+    }
+    #searchInput:focus {
+      border-color:rgba(149,133,255,.72)!important;
+      box-shadow:0 0 0 3px rgba(149,133,255,.13)!important;
+    }
+    #searchInput::placeholder { color:#8793A8!important; }
+    .header-search-actions>button {
+      color:#F7F7FF!important; background:#7768E8!important;
+      border:1px solid rgba(196,188,255,.34)!important; border-radius:13px!important;
+      box-shadow:0 5px 15px rgba(100,87,208,.18)!important;
+    }
+    .header-search-actions>button:hover { background:#8779F2!important; transform:none!important; }
+
+    .category-nav-shell { border-top-color:rgba(160,174,202,.10)!important; padding-top:10px!important; }
+    .category-nav-heading { gap:8px!important; }
+    .category-nav-eyebrow {
+      color:#C4BCFF!important; font-size:11px!important;
+      font-weight:650!important; letter-spacing:.01em!important;
+    }
+    .category-nav-caption { color:#8491A7!important; font-size:10px!important; }
+    .category-strip .cat-pill {
+      border:1px solid rgba(162,177,207,.12)!important; border-radius:999px!important;
+      background:rgba(20,29,46,.82)!important; color:#C3CCDA!important;
+      box-shadow:none!important; font-weight:550!important;
+    }
+    .category-strip .cat-pill:hover {
+      border-color:rgba(149,133,255,.36)!important; background:rgba(149,133,255,.10)!important;
+    }
+    .category-strip .cat-pill.bg-white {
+      color:#E7E2FF!important; background:rgba(149,133,255,.19)!important;
+      border-color:rgba(149,133,255,.43)!important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important;
+    }
+
+    .workspace-main { padding-top:16px!important; }
+    #heroSpotlight { margin-bottom:18px!important; }
+    .hero-feature-card {
+      min-height:166px!important; border-radius:20px!important;
+      border:1px solid rgba(116,150,201,.19)!important;
+      background:linear-gradient(112deg,#111827 0%,#131B2C 62%,#101D2A 100%)!important;
+      box-shadow:0 14px 34px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.045)!important;
+    }
+    .hero-feature-card::before {
+      background:radial-gradient(ellipse at 87% 8%,rgba(149,133,255,.16),transparent 42%),
+                 radial-gradient(ellipse at 7% 100%,rgba(99,214,230,.09),transparent 48%)!important;
+      opacity:1!important;
+    }
+    .hero-feature-card::after { display:none!important; }
+    .hero-feature-poster {
+      border-radius:12px!important; border-color:rgba(214,223,242,.20)!important;
+      box-shadow:0 8px 22px rgba(0,0,0,.42)!important;
+    }
+    .hero-feature-poster:hover { transform:none!important; }
+    .hero-feature-label {
+      color:#C7C0FF!important; background:rgba(149,133,255,.12)!important;
+      border:1px solid rgba(149,133,255,.19)!important; border-radius:999px!important;
+      font-size:10px!important; font-weight:650!important; letter-spacing:.01em!important;
+    }
+    .hero-live-dot { background:var(--brand-cyan)!important; box-shadow:0 0 8px rgba(99,214,230,.65)!important; }
+    .hero-feature-category { color:#9EADC2!important; }
+    .hero-feature-title { letter-spacing:-.035em!important; font-weight:750!important; }
+    .hero-feature-subtitle { color:#A4B0C2!important; }
+    .hero-progress-meta span {
+      color:#94A1B6!important; font-size:9px!important;
+      font-weight:600!important; letter-spacing:.02em!important;
+    }
+    .hero-progress-meta strong { color:#BEB5FF!important; }
+    .hero-progress-track { background:rgba(255,255,255,.09)!important; }
+    .hero-progress-fill {
+      background:linear-gradient(90deg,#9585FF,#63D6E6)!important;
+      box-shadow:0 0 10px rgba(149,133,255,.23)!important;
+    }
+    .hero-feature-action {
+      color:#F9F8FF!important; background:#7668E8!important;
+      border:1px solid rgba(198,190,255,.30)!important; border-radius:12px!important;
+      box-shadow:0 7px 18px rgba(89,78,190,.18)!important;
+    }
+    .hero-feature-action:hover {
+      transform:none!important; filter:none!important; background:#8779F2!important;
+      box-shadow:0 8px 20px rgba(89,78,190,.20)!important;
+    }
+    .hero-action-arrow { display:none!important; }
+
+    .library-toolbar {
+      padding:14px 16px 12px!important; border:1px solid rgba(155,173,205,.13)!important;
+      border-radius:16px!important; background:rgba(17,24,39,.86)!important;
+      box-shadow:0 8px 22px rgba(0,0,0,.13)!important;
+      backdrop-filter:blur(12px)!important; -webkit-backdrop-filter:blur(12px)!important;
+    }
+    .library-eyebrow {
+      color:#BFB7FF!important; font-size:10px!important;
+      font-weight:650!important; letter-spacing:.015em!important;
+    }
+    .library-eyebrow-dot { background:var(--brand-cyan)!important; box-shadow:0 0 7px rgba(99,214,230,.55)!important; }
+    .library-heading-copy h2 {
+      color:#F4F6FC!important; font-size:18px!important;
+      font-weight:720!important; letter-spacing:-.035em!important;
+    }
+    .library-heading-copy p { color:#91A0B5!important; }
+    #visibleCountBadge { color:#A5B1C4!important; }
+    .poster-sync-button {
+      color:#CDC6FF!important; background:rgba(149,133,255,.10)!important;
+      border:1px solid rgba(149,133,255,.24)!important; border-radius:10px!important;
+      box-shadow:none!important;
+    }
+    .poster-sync-button:hover {
+      background:rgba(149,133,255,.17)!important;
+      border-color:rgba(149,133,255,.38)!important; transform:none!important;
+    }
+    .library-toolbar-filters { border-top-color:rgba(155,173,205,.10)!important; }
+    .filter-label { color:#9AA8BC!important; font-size:10px!important; font-weight:600!important; letter-spacing:.01em!important; }
+    .status-filter-row .status-chip {
+      background:rgba(255,255,255,.035)!important; border:1px solid rgba(155,173,205,.13)!important;
+      border-radius:999px!important; color:#B7C1D1!important; box-shadow:none!important;
+    }
+    .status-filter-row .status-chip:hover {
+      background:rgba(149,133,255,.10)!important; border-color:rgba(149,133,255,.28)!important;
+    }
+    .status-filter-row .status-chip.bg-orange-500 {
+      color:#F6F3FF!important; background:rgba(149,133,255,.22)!important;
+      border-color:rgba(149,133,255,.45)!important; box-shadow:none!important;
+    }
+
+    .haze-bar,.haze-card {
+      background-color:rgba(17,24,39,.82)!important;
+      border-color:rgba(155,173,205,.13)!important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .haze-modal {
+      background:rgba(10,15,26,.97)!important; border-color:rgba(149,133,255,.18)!important;
+      backdrop-filter:blur(14px)!important; -webkit-backdrop-filter:blur(14px)!important;
+    }
+    #detailModal,#addAnimeModal { background-color:rgba(3,6,13,.82)!important; }
+    .detail-sheet-scroll { scrollbar-color:rgba(149,133,255,.30) transparent!important; }
+
+    .poster-wrap {
+      border-radius:13px!important; background:#111827!important;
+      box-shadow:0 6px 16px rgba(0,0,0,.30)!important;
+      transition:transform 180ms cubic-bezier(.2,.75,.25,1),box-shadow 180ms ease!important;
+    }
+    @media (hover:hover) {
+      .poster-card:hover .poster-wrap {
+        transform:none!important; box-shadow:0 6px 16px rgba(0,0,0,.30)!important;
+      }
+    }
+    .poster-card:active .poster-wrap { transform:scale(.975)!important; }
+    .poster-wrap img { transition:transform 240ms ease!important; }
+    .poster-card.motion-enter { animation-duration:260ms!important; }
+
+    .liquid-glass-dock {
+      background:rgba(13,19,32,.94)!important; border:1px solid rgba(164,181,214,.20)!important;
+      backdrop-filter:blur(16px) saturate(125%)!important;
+      -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
+      box-shadow:0 14px 34px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.07)!important;
+    }
+    .liquid-glass-dock::before { display:none!important; }
+    .liquid-active-pill {
+      background:linear-gradient(110deg,rgba(149,133,255,.26),rgba(99,214,230,.15))!important;
+      border:1px solid rgba(177,164,255,.35)!important;
+      backdrop-filter:blur(10px) saturate(125%)!important;
+      -webkit-backdrop-filter:blur(10px) saturate(125%)!important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 3px 12px rgba(0,0,0,.18)!important;
+    }
+    .liquid-active-pill::after { display:none!important; }
+    .nav-tab.is-active-tab {
+      color:#F7F5FF!important; text-shadow:0 0 12px rgba(149,133,255,.36)!important;
+      transform:none!important;
+    }
+    .nav-tab.is-active-tab svg { transform:none!important; filter:none!important; }
+
+    .yt-pill-btn { background:rgba(149,133,255,.08)!important; border-color:rgba(149,133,255,.18)!important; }
+    .yt-pill-btn:hover { background:rgba(149,133,255,.16)!important; }
+    .yt-seek-slider::-webkit-slider-thumb {
+      background:var(--brand-violet)!important; box-shadow:0 0 8px rgba(149,133,255,.55)!important;
+    }
+    .yt-seek-slider::-moz-range-thumb { background:var(--brand-violet)!important; border:0!important; }
+    input[type="range"],input[type="checkbox"] { accent-color:var(--brand-violet)!important; }
+    .yt-video-frame { box-shadow:0 15px 38px rgba(0,0,0,.56)!important; }
+
+    .text-orange-200,.text-orange-300,.text-orange-400,.text-orange-500 { color:#BEB5FF!important; }
+    .bg-orange-500 { background-color:#7668E8!important; color:#F8F7FF!important; }
+    [class~="bg-orange-500/20"],[class~="bg-orange-500/25"] {
+      background-color:rgba(149,133,255,.16)!important; color:#C7C0FF!important;
+    }
+    [class~="border-orange-400/20"],[class~="border-orange-500/20"] { border-color:rgba(149,133,255,.24)!important; }
+    [class~="hover:bg-orange-500"]:hover,[class~="hover:bg-orange-400"]:hover { background-color:#8779F2!important; }
+    [class~="focus:border-orange-500"]:focus { border-color:rgba(149,133,255,.72)!important; }
+    [class~="accent-orange-500"] { accent-color:var(--brand-violet)!important; }
+
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible {
+      outline:2px solid rgba(149,133,255,.68)!important; outline-offset:2px;
+    }
+    button,[role="button"] { touch-action:manipulation; }
+    @media (max-width:700px) {
+      .app-header { backdrop-filter:blur(12px)!important; -webkit-backdrop-filter:blur(12px)!important; }
+      .haze-card,.haze-bar { backdrop-filter:blur(6px)!important; -webkit-backdrop-filter:blur(6px)!important; }
+      .library-toolbar { backdrop-filter:blur(8px)!important; -webkit-backdrop-filter:blur(8px)!important; }
+      .workspace-main { padding-bottom:12px; }
+    }
+    @media (max-width:540px) {
+      .hero-feature-card { border-radius:17px!important; }
+      .hero-feature-action { background:#7668E8!important; }
+      .library-toolbar { border-radius:14px!important; }
+      .category-nav-heading { margin-bottom:8px!important; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .poster-card.motion-enter { animation:none!important; }
+      .hero-feature-action,.poster-wrap,.app-header { transition:none!important; }
+    }
+
   </style>
 </head>
-<body class="min-h-screen pb-32 selection:bg-orange-500/30 selection:text-orange-200">
+<body class="min-h-screen pb-32 selection:bg-violet-500/30 selection:text-violet-100">
 
   <!-- Ambient Artwork-Driven Mesh Backdrop -->
   <div id="ambientBackdrop" class="ambient-backdrop"></div>
@@ -816,7 +1073,7 @@
 
       <!-- Horizontal Category Navigation -->
       <div class="category-nav-shell">
-        <div class="category-nav-heading"><span class="category-nav-eyebrow">DISCOVER</span><span class="category-nav-caption">Browse your genres</span></div>
+        <div class="category-nav-heading"><span class="category-nav-eyebrow">Explore genres</span><span class="category-nav-caption">Browse your genres</span></div>
         <div id="categoryStrip" class="category-strip flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5"></div>
       </div>
     </div>
@@ -832,7 +1089,7 @@
     <section id="libraryToolbar" class="library-toolbar mb-5">
       <div class="library-toolbar-heading">
         <div class="library-heading-copy">
-          <span class="library-eyebrow"><span class="library-eyebrow-dot"></span> YOUR COLLECTION</span>
+          <span class="library-eyebrow"><span class="library-eyebrow-dot"></span> Your collection</span>
           <h2>Anime Library</h2>
           <p>Find your next favorite and keep your watchlist in sync.</p>
         </div>
@@ -847,7 +1104,7 @@
         </div>
       </div>
       <div class="library-toolbar-filters">
-        <span class="filter-label">FILTER BY</span>
+        <span class="filter-label">Status</span>
         <div id="statusFilterRow" class="status-filter-row flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <button data-status="ALL" class="status-chip px-3 py-1 rounded-full text-xs font-medium bg-orange-500 text-black transition">All Titles</button>
           <button data-status="Watching" class="status-chip px-3 py-1 rounded-full text-xs font-medium haze-card text-zinc-300 hover:text-white transition">Watching</button>
@@ -2002,19 +2259,19 @@
               <img src="${getPosterUrl(featured)}" alt="${featured.title}" data-poster-title="${featured.title.replace(/"/g, '&quot;')}" class="hero-feature-poster" id="heroPosterClick" loading="lazy" decoding="async" />
               <div class="hero-feature-copy">
                 <div class="hero-feature-label-row">
-                  <span class="hero-feature-label"><span class="hero-live-dot"></span> CONTINUE WATCHING</span>
+                  <span class="hero-feature-label"><span class="hero-live-dot"></span> Continue watching</span>
                   <span class="hero-feature-category">${featured.categoryName}</span>
                 </div>
                 <h2 class="hero-feature-title">${featured.title}</h2>
                 <p class="hero-feature-subtitle">${summary.seasonName} <span>·</span> ${summary.watched} of ${summary.total} episodes watched</p>
-                <div class="hero-progress-meta"><span>YOUR PROGRESS</span><strong>${pct}%</strong></div>
+                <div class="hero-progress-meta"><span>Your progress</span><strong>${pct}%</strong></div>
                 <div class="hero-progress-track"><div class="hero-progress-fill" style="width:${pct}%"></div></div>
               </div>
             </div>
             <button id="heroOpenBtn" class="hero-feature-action">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               <span>View Episodes</span>
-              <span class="hero-action-arrow">↗</span>
+
             </button>
           </div>
         </div>
