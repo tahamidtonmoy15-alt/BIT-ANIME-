@@ -661,6 +661,103 @@
       .hero-feature-poster, .hero-feature-action, .poster-sync-button, .status-filter-row .status-chip { transition:none !important; }
     }
 
+    /* BitAnime motion system — short, GPU-friendly transitions for touch devices. */
+    :root {
+      --motion-fast: 150ms;
+      --motion-base: 220ms;
+      --motion-smooth: cubic-bezier(.2,.75,.25,1);
+      --motion-spring: cubic-bezier(.2,1.25,.35,1);
+    }
+    html { scroll-behavior: smooth; }
+    body { -webkit-overflow-scrolling: touch; }
+    button, [role="button"], a, input, select, textarea {
+      -webkit-tap-highlight-color: transparent;
+    }
+    button, [role="button"] {
+      transition:
+        transform var(--motion-fast) var(--motion-smooth),
+        background-color var(--motion-fast) ease,
+        border-color var(--motion-fast) ease,
+        color var(--motion-fast) ease,
+        box-shadow var(--motion-base) ease,
+        opacity var(--motion-fast) ease;
+    }
+    button:active, [role="button"]:active {
+      transform: scale(.965);
+    }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid rgba(255,153,83,.72);
+      outline-offset: 2px;
+    }
+    .poster-card {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+    .poster-wrap img {
+      transform: scale(1.001);
+      transition: transform 360ms var(--motion-smooth), filter 260ms ease;
+      backface-visibility: hidden;
+    }
+    .poster-card:active .poster-wrap img {
+      transform: scale(1.035);
+      filter: brightness(1.06);
+    }
+    .poster-card .poster-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.12), transparent 48%);
+      transition: opacity 220ms ease;
+    }
+    .poster-card:active .poster-wrap::after { opacity: 1; }
+    .poster-card.motion-enter {
+      animation: posterReveal 340ms var(--motion-smooth) both;
+      animation-delay: var(--motion-delay, 0ms);
+    }
+    @keyframes posterReveal {
+      from { opacity: 0; transform: translate3d(0,12px,0) scale(.985); }
+      to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+    }
+    .hero-feature-card, .library-toolbar, .haze-card, .yt-video-frame {
+      backface-visibility: hidden;
+    }
+    .hero-feature-card, .library-toolbar {
+      transition: transform 260ms var(--motion-smooth), border-color 220ms ease, box-shadow 260ms ease;
+    }
+    .cat-pill, .status-chip, .yt-pill-btn, .nav-tab {
+      touch-action: manipulation;
+    }
+    .app-header {
+      transition: transform 260ms var(--motion-smooth), box-shadow 220ms ease;
+    }
+    .app-header.header-hidden {
+      transition: transform 240ms var(--motion-smooth), box-shadow 180ms ease;
+    }
+    .detail-sheet-scroll, #playerContainer, #inAppPlayer {
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheet-enter {
+      animation: slideUpSheet 300ms var(--motion-smooth) both;
+    }
+    @media (max-width: 700px) {
+      /* Heavy backdrop filters on every scrolling frame can stutter on mid-range phones. */
+      .app-header { backdrop-filter: blur(14px) saturate(135%); -webkit-backdrop-filter: blur(14px) saturate(135%); }
+      .haze-card, .haze-bar { backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
+      .poster-wrap { box-shadow: 0 7px 18px -8px rgba(0,0,0,.62); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
   </style>
 </head>
 <body class="min-h-screen pb-32 selection:bg-orange-500/30 selection:text-orange-200">
@@ -2038,6 +2135,12 @@
         grid.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-zinc-400">No anime pinned for this day yet. Tap the <span class="text-white font-bold">+</span> icon on any poster below to add it to your weekly list.</div>`;
       } else {
         grid.innerHTML = filteredWeekly.map(createAnimeCardHtml).join("");
+        grid.querySelectorAll(".poster-card").forEach((card, index) => {
+          if (index < 12) {
+            card.classList.add("motion-enter");
+            card.style.setProperty("--motion-delay", `${Math.min(index, 5) * 24}ms`);
+          }
+        });
         bindCardEvents(grid);
       }
     }
@@ -2078,6 +2181,14 @@
       } else {
         empty.classList.add("hidden");
         grid.innerHTML = filtered.map(createAnimeCardHtml).join("");
+        // A short stagger on the first visible row adds polish without animating
+        // the entire 250-title catalogue at once on lower-powered Android devices.
+        grid.querySelectorAll(".poster-card").forEach((card, index) => {
+          if (index < 12) {
+            card.classList.add("motion-enter");
+            card.style.setProperty("--motion-delay", `${Math.min(index, 5) * 24}ms`);
+          }
+        });
         bindCardEvents(grid);
       }
     }
