@@ -712,7 +712,7 @@
     <section id="heroSpotlight" class="mb-5"></section>
 
     <!-- Premium Library Toolbar -->
-    <section class="library-toolbar mb-5">
+    <section id="libraryToolbar" class="library-toolbar mb-5">
       <div class="library-toolbar-heading">
         <div class="library-heading-copy">
           <span class="library-eyebrow"><span class="library-eyebrow-dot"></span> YOUR COLLECTION</span>
@@ -2101,6 +2101,14 @@
       const stats = await getAllVaultKeysAndStats();
       vaultEpisodeKeys = stats.keys;
       vaultStats = stats;
+
+      // Keep the HOME layout deterministic on Android WebView: the spotlight
+      // and collection toolbar must not disappear between initial and later renders.
+      const isHome = activeNav === "HOME";
+      const hero = document.getElementById("heroSpotlight");
+      const toolbar = document.getElementById("libraryToolbar");
+      if (hero) hero.classList.toggle("hidden", !isHome);
+      if (toolbar) toolbar.classList.toggle("hidden", !isHome);
 
       renderCategoryStrip();
       renderHeroSpotlight();
