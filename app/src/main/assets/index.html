@@ -47,30 +47,30 @@
       background: radial-gradient(circle at 18% 12%, var(--ambient-1) 0%, transparent 52%),
                   radial-gradient(circle at 82% 28%, var(--ambient-2) 0%, transparent 55%),
                   radial-gradient(circle at 50% 90%, rgba(244, 117, 33, 0.14) 0%, transparent 60%);
-      opacity: 0.34;
-      filter: blur(70px);
+      opacity: 0.22;
+      filter: blur(30px);
       transition: background 0.9s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     /* Apple Music / BitChord Haze Frosted Surfaces */
     .haze-bar {
       background: rgba(14, 14, 19, 0.74);
-      backdrop-filter: blur(28px) saturate(190%);
-      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      backdrop-filter: blur(12px) saturate(150%);
+      -webkit-backdrop-filter: blur(12px) saturate(150%);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .haze-card {
       background: rgba(22, 22, 29, 0.62);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
       border: 1px solid rgba(255, 255, 255, 0.065);
     }
 
     .haze-modal {
       background: rgba(10, 10, 14, 0.88);
-      backdrop-filter: blur(44px) saturate(200%);
-      -webkit-backdrop-filter: blur(44px) saturate(200%);
+      backdrop-filter: blur(12px) saturate(145%);
+      -webkit-backdrop-filter: blur(12px) saturate(145%);
     }
 
     /* Hide Scrollbars cleanly */
@@ -123,6 +123,47 @@
       animation: slideUpSheet 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
+    .detail-sheet-scroll {
+      max-height: 95dvh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.18) transparent;
+    }
+    .detail-sheet-scroll::-webkit-scrollbar { width: 4px; }
+    .detail-sheet-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,.18);
+      border-radius: 99px;
+    }
+    .yt-player-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .yt-player-controls-main {
+      display: flex;
+      flex: 1 1 220px;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .yt-player-volume { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .yt-player-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    @media (max-width: 420px) {
+      .yt-player-controls-main { flex-basis: 100%; }
+      .yt-player-volume { margin-left: auto; }
+      .yt-player-actions > button { padding-left: 10px; padding-right: 10px; }
+      #inAppVideo { max-height: min(48dvh, 360px); object-fit: contain; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sheet-enter { animation: none; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
@@ -144,8 +185,8 @@
       inset: -18%;
       width: 136%;
       height: 136%;
-      filter: blur(54px) saturate(215%) brightness(1.18);
-      opacity: 0.88;
+      filter: blur(18px) saturate(145%) brightness(1.08);
+      opacity: 0;
       pointer-events: none;
       z-index: 0;
       transition: opacity 0.4s ease, filter 0.3s ease;
@@ -161,8 +202,8 @@
     }
     .yt-pill-btn {
       background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.09);
       transition: all 0.2s ease;
     }
@@ -796,16 +837,16 @@
   <!-- ===================================================================== -->
   <!-- ANIME DETAIL & EPISODE VAULT SHEET (BitChord Full-Bleed Modal)        -->
   <!-- ===================================================================== -->
-  <div id="detailModal" class="fixed inset-0 z-50 hidden flex-col justify-end bg-black/75 backdrop-blur-md">
-    <div id="detailSheet" class="haze-modal w-full max-w-4xl mx-auto rounded-t-3xl sm:rounded-3xl sm:mb-4 max-h-[92vh] flex flex-col overflow-hidden border border-white/10 shadow-2xl sheet-enter">
+  <div id="detailModal" class="fixed inset-0 z-50 hidden flex-col justify-end bg-black/80 backdrop-blur-sm">
+    <div id="detailSheet" class="detail-sheet-scroll haze-modal w-full max-w-4xl mx-auto rounded-t-3xl sm:rounded-3xl border border-white/10 shadow-2xl sheet-enter">
       
       <!-- Dynamic Artwork Header Banner -->
-      <div class="relative p-4 sm:p-6 pb-4 border-b border-white/[0.07] overflow-hidden shrink-0">
+      <div class="relative p-3 sm:p-6 pb-3 border-b border-white/[0.07] overflow-hidden">
         <div id="detailAmbientGlow" class="absolute inset-0 opacity-35 blur-2xl pointer-events-none"></div>
         
         <div class="relative z-10 flex items-start gap-4">
           <!-- Poster Preview + Change Poster Button -->
-          <div class="relative w-24 sm:w-28 aspect-[2/3] rounded-xl overflow-hidden shadow-xl shrink-0 border border-white/15 group bg-zinc-900">
+          <div class="relative w-20 sm:w-28 aspect-[2/3] rounded-xl overflow-hidden shadow-lg shrink-0 border border-white/15 group bg-zinc-900">
             <img id="detailPosterImg" src="" alt="" class="w-full h-full object-cover" />
             <label class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 active:opacity-100 flex flex-col items-center justify-center text-[10px] font-semibold text-white cursor-pointer transition">
               <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -821,7 +862,7 @@
             <div class="flex items-start justify-between gap-2">
               <div>
                 <span id="detailCategoryBadge" class="inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/10 text-orange-300 mb-1"></span>
-                <h2 id="detailTitle" class="text-lg sm:text-xl font-extrabold text-white leading-tight break-words"></h2>
+                <h2 id="detailTitle" class="text-base sm:text-xl font-extrabold text-white leading-tight break-words"></h2>
               </div>
               <button id="closeDetailBtn" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300 hover:text-white shrink-0">✕</button>
             </div>
@@ -853,7 +894,7 @@
       </div>
 
       <!-- Scrollable Body: Video Player (when active) + Season Builder + Episode List -->
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+      <div class="detail-body p-3 sm:p-6 space-y-5">
 
         <!-- IN-APP YOUTUBE AMBIENT LIGHT CINEMA PLAYER + EXTERNAL PLAYER LAUNCHER -->
         <div id="playerContainer" class="hidden rounded-3xl overflow-hidden bg-[#0b0b0f] border border-white/15 shadow-2xl relative">
@@ -898,10 +939,10 @@
                 <span class="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">☼</span>
                 <div>
                   <p class="font-semibold text-zinc-100 text-xs">Ambient light for Cinema™</p>
-                  <p class="text-[10px] text-emerald-400">60fps Dynamic Edge Glow</p>
+                  <p class="text-[10px] text-emerald-400">Low-impact live edge glow</p>
                 </div>
               </div>
-              <input id="ambientToggleCheck" type="checkbox" checked class="w-4 h-4 accent-orange-500 rounded cursor-pointer" />
+              <input id="ambientToggleCheck" type="checkbox" class="w-4 h-4 accent-orange-500 rounded cursor-pointer" />
             </div>
 
             <div class="space-y-1.5 pt-1 border-t border-white/10">
@@ -951,8 +992,8 @@
                 />
 
                 <!-- Controls Row: Play/Pause, Skip -10/+10s, Timecode, Volume & Mute -->
-                <div class="flex items-center justify-between gap-3 text-white">
-                  <div class="flex items-center gap-2.5">
+                <div class="yt-player-controls text-white">
+                  <div class="yt-player-controls-main">
                     <button id="customPlayPauseBtn" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition active:scale-90" title="Play / Pause">
                       <svg id="customPlayIcon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                       <svg id="customPauseIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -965,7 +1006,7 @@
                   </div>
 
                   <!-- Right Side: Volume Mute Toggle & Slider only (Disabled native fullscreen icon completely gone!) -->
-                  <div class="flex items-center gap-2">
+                  <div class="yt-player-volume">
                     <button id="customMuteBtn" class="w-7 h-7 rounded-full hover:bg-white/15 flex items-center justify-center text-zinc-200 hover:text-white transition" title="Mute / Unmute">
                       <svg id="customVolIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
@@ -997,7 +1038,7 @@
               </div>
 
               <!-- YouTube-Style Rounded Action Pills -->
-              <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+              <div class="yt-player-actions">
                 <button id="prevEpPlayerBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-200 flex items-center gap-1" title="Previous Episode">
                   <span>⏮</span><span>Prev</span>
                 </button>
@@ -1022,38 +1063,23 @@
               </div>
             </div>
 
-            <!-- Row 2: Telegram / YouTube-style External Player Handoff Bar (MX Player / VLC / System Share) -->
-            <div class="pt-2.5 border-t border-white/[0.07] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-              <div class="text-[11px] text-zinc-400 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-                <span><strong class="text-zinc-200">External Player Handoff:</strong> Open video directly in your mobile player</span>
+            <!-- Single Android Open With action -->
+            <div class="pt-3 border-t border-white/[0.07] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-zinc-200">Play in another app</p>
+                <p class="text-[11px] text-zinc-500">Choose VLC, MX Player, or another installed video player</p>
               </div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <button
-                  id="openMxPlayerBtn"
-                  class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-full bg-[#1e40af] hover:bg-[#1d4ed8] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-blue-950/50 transition active:scale-95"
-                >
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  <span>MX Player</span>
-                </button>
-                <button
-                  id="openVlcPlayerBtn"
-                  class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-full bg-[#ea580c] hover:bg-[#f97316] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-orange-950/50 transition active:scale-95"
-                >
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-                  <span>VLC Player</span>
-                </button>
-                <button
-                  id="openSystemSharePlayerBtn"
-                  class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-full yt-pill-btn text-zinc-100 text-xs font-semibold flex items-center justify-center gap-1.5"
-                  title="Uses system Open With / Share sheet (Telegram style)"
-                >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
-                  </svg>
-                  <span>Open With App...</span>
-                </button>
-              </div>
+              <button
+                id="openWithAppBtn"
+                type="button"
+                class="w-full sm:w-auto shrink-0 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-zinc-100 text-xs font-semibold inline-flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                title="Open this episode in an installed video player"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14 3h7v7m-1-6L10 14M18 13v5a3 3 0 01-3 3H6a3 3 0 01-3-3V9a3 3 0 013-3h5"/>
+                </svg>
+                <span>Open with app</span>
+              </button>
             </div>
 
           </div>
@@ -1541,7 +1567,7 @@
      * 3. INDEXEDDB OFFLINE VIDEO VAULT (Gallery-Independent Blob Storage)   *
      *************************************************************************/
     const DB_NAME = "BitAnimeOfflineVaultDB";
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     let dbInstance = null;
 
     function openVaultDB() {
@@ -1550,12 +1576,34 @@
         const req = indexedDB.open(DB_NAME, DB_VERSION);
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
+          const tx = e.target.transaction;
           if (!db.objectStoreNames.contains("episodeVideos")) {
             db.createObjectStore("episodeVideos", { keyPath: "key" });
+          }
+          if (!db.objectStoreNames.contains("episodeMeta")) {
+            const metaStore = db.createObjectStore("episodeMeta", { keyPath: "key" });
+            // One-time migration for existing installs: copy only key/size metadata.
+            const videoStore = tx.objectStore("episodeVideos");
+            const cursorRequest = videoStore.openCursor();
+            cursorRequest.onsuccess = (event) => {
+              const cursor = event.target.result;
+              if (!cursor) return;
+              const record = cursor.value;
+              metaStore.put({
+                key: record.key,
+                size: record.size || (record.blob ? record.blob.size : 0),
+                savedAt: record.savedAt || Date.now()
+              });
+              cursor.continue();
+            };
           }
         };
         req.onsuccess = (e) => {
           dbInstance = e.target.result;
+          dbInstance.onversionchange = () => {
+            dbInstance.close();
+            dbInstance = null;
+          };
           resolve(dbInstance);
         };
         req.onerror = (e) => reject(e.target.error);
@@ -1565,8 +1613,7 @@
     async function saveEpisodeVideoToVault(key, file) {
       const db = await openVaultDB();
       return new Promise((resolve, reject) => {
-        const tx = db.transaction("episodeVideos", "readwrite");
-        const store = tx.objectStore("episodeVideos");
+        const tx = db.transaction(["episodeVideos", "episodeMeta"], "readwrite");
         const record = {
           key,
           blob: file,
@@ -1575,7 +1622,12 @@
           size: file.size || 0,
           savedAt: Date.now()
         };
-        store.put(record);
+        tx.objectStore("episodeVideos").put(record);
+        tx.objectStore("episodeMeta").put({
+          key,
+          size: record.size,
+          savedAt: record.savedAt
+        });
         tx.oncomplete = () => resolve(record);
         tx.onerror = (e) => reject(e.target.error);
       });
@@ -1595,9 +1647,9 @@
     async function deleteEpisodeVideoFromVault(key) {
       const db = await openVaultDB();
       return new Promise((resolve, reject) => {
-        const tx = db.transaction("episodeVideos", "readwrite");
-        const store = tx.objectStore("episodeVideos");
-        store.delete(key);
+        const tx = db.transaction(["episodeVideos", "episodeMeta"], "readwrite");
+        tx.objectStore("episodeVideos").delete(key);
+        tx.objectStore("episodeMeta").delete(key);
         tx.oncomplete = () => resolve(true);
         tx.onerror = (e) => reject(e.target.error);
       });
@@ -1607,18 +1659,17 @@
       try {
         const db = await openVaultDB();
         return new Promise((resolve) => {
-          const tx = db.transaction("episodeVideos", "readonly");
-          const store = tx.objectStore("episodeVideos");
-          const req = store.getAll();
+          const tx = db.transaction("episodeMeta", "readonly");
+          const req = tx.objectStore("episodeMeta").getAll();
           req.onsuccess = () => {
-            const list = req.result || [];
+            const metadata = req.result || [];
             const keys = new Set();
             let totalBytes = 0;
-            for (const item of list) {
+            for (const item of metadata) {
               keys.add(item.key);
               totalBytes += (item.size || 0);
             }
-            resolve({ keys, count: list.length, totalBytes });
+            resolve({ keys, count: metadata.length, totalBytes });
           };
           req.onerror = () => resolve({ keys: new Set(), count: 0, totalBytes: 0 });
         });
@@ -2070,6 +2121,8 @@
       const modal = document.getElementById("detailModal");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
+      const sheet = document.getElementById("detailSheet");
+      if (sheet) sheet.scrollTop = 0;
 
       refreshDetailModalUI();
     }
@@ -2356,32 +2409,45 @@
     /*************************************************************************
      * 8. IN-APP YOUTUBE AMBIENT LIGHT PLAYER & MX / VLC EXTERNAL LAUNCHER   *
      *************************************************************************/
-    let ambientRafId = null;
-    let ambientEnabled = true;
+    let ambientTimerId = null;
+    let ambientEnabled = false;
     let currentPlayingContext = { animeId: null, seasonIdx: 0, epNum: 1 };
     const PLAYBACK_SPEEDS = [1.0, 1.25, 1.5, 2.0, 0.75];
     let speedIndex = 0;
 
+    function stopAmbientLightEngine() {
+      if (ambientTimerId !== null) {
+        clearInterval(ambientTimerId);
+        ambientTimerId = null;
+      }
+      const canvas = document.getElementById("ambientLightCanvas");
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
     function startAmbientLightEngine() {
-      cancelAnimationFrame(ambientRafId);
+      if (ambientTimerId !== null) {
+        clearInterval(ambientTimerId);
+        ambientTimerId = null;
+      }
+      if (!ambientEnabled) return;
       const videoEl = document.getElementById("inAppVideo");
       const canvas = document.getElementById("ambientLightCanvas");
       if (!videoEl || !canvas) return;
-      const ctx = canvas.getContext("2d", { willReadFrequently: false });
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-      function drawAmbientFrame() {
-        if (!ambientEnabled) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          return;
-        }
-        if (!videoEl.paused && !videoEl.ended && videoEl.readyState >= 2) {
-          try {
-            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-          } catch (_) {}
-        }
-        ambientRafId = requestAnimationFrame(drawAmbientFrame);
-      }
-      ambientRafId = requestAnimationFrame(drawAmbientFrame);
+      const drawAmbientFrame = () => {
+        if (!ambientEnabled || videoEl.paused || videoEl.ended || videoEl.readyState < 2) return;
+        try {
+          ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        } catch (_) {}
+      };
+      drawAmbientFrame();
+      // Five lightweight updates per second instead of a continuous 60 FPS canvas loop.
+      ambientTimerId = window.setInterval(drawAmbientFrame, 200);
     }
 
     async function playEpisodeFromVault(anime, seasonIdx, epNum) {
@@ -2439,7 +2505,7 @@
     }
 
     function stopInAppPlayer() {
-      cancelAnimationFrame(ambientRafId);
+      stopAmbientLightEngine();
       const playerBox = document.getElementById("playerContainer");
       if (playerBox) playerBox.classList.remove("is-fullscreen");
       const videoEl = document.getElementById("inAppVideo");
@@ -2454,8 +2520,20 @@
       playerBox.classList.add("hidden");
     }
 
-    // Launch External Player (MX Player / VLC / System Share Sheet for Offline Blobs)
-    async function launchExternalPlayer(targetPlayer) {
+    function blobChunkToBase64(chunk) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = String(reader.result || "");
+          const separator = dataUrl.indexOf(",");
+          resolve(separator >= 0 ? dataUrl.slice(separator + 1) : "");
+        };
+        reader.onerror = () => reject(reader.error || new Error("Could not read video data."));
+        reader.readAsDataURL(chunk);
+      });
+    }
+
+    async function launchExternalPlayer() {
       if (!currentPlayingVaultRecord || !currentPlayingVaultRecord.blob) {
         showToast("Play an episode video first.");
         return;
@@ -2464,61 +2542,63 @@
       const blob = currentPlayingVaultRecord.blob;
       const fileName = currentPlayingVaultRecord.fileName || "anime_episode.mp4";
       const mimeType = currentPlayingVaultRecord.mimeType || "video/mp4";
+      const bridge = window.BitAnimeAndroid;
 
-      // 1. Primary Method on Mobile PWA/Browsers: Native File Share Sheet (lets user pick VLC / MX Player directly with offline Blob!)
-      if (targetPlayer === "SHARE" && navigator.canShare) {
+      // Native Android: copy the offline Blob to cache in small chunks, then share a
+      // FileProvider content:// URI through the real Android app chooser.
+      if (bridge && typeof bridge.beginVideoExport === "function") {
+        let exportId = "";
         try {
-          const fileObj = new File([blob], fileName, { type: mimeType });
-          if (navigator.canShare({ files: [fileObj] })) {
-            await navigator.share({
-              title: fileName,
-              files: [fileObj]
-            });
+          exportId = bridge.beginVideoExport(fileName, mimeType);
+          if (!exportId) throw new Error("Unable to create a temporary video file.");
+
+          const chunkSize = 256 * 1024;
+          for (let offset = 0; offset < blob.size; offset += chunkSize) {
+            const chunk = blob.slice(offset, Math.min(offset + chunkSize, blob.size));
+            const encoded = await blobChunkToBase64(chunk);
+            if (!encoded || !bridge.appendVideoExportChunk(exportId, encoded)) {
+              throw new Error("Unable to transfer the video to Android.");
+            }
+          }
+
+          if (!bridge.finishVideoExport(exportId)) {
+            throw new Error("Android could not open the video chooser.");
+          }
+          showToast("Choose VLC, MX Player, or another video app.");
+          return;
+        } catch (error) {
+          if (exportId && typeof bridge.cancelVideoExport === "function") {
+            bridge.cancelVideoExport(exportId);
+          }
+          console.error("Android video handoff failed:", error);
+          showToast("Could not prepare this video for another app.");
+          return;
+        }
+      }
+
+      // Browser/PWA fallback: use native file sharing when the browser supports it.
+      if (navigator.canShare && typeof File !== "undefined") {
+        try {
+          const file = new File([blob], fileName, { type: mimeType });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ title: fileName, files: [file] });
             return;
           }
-        } catch (err) {
-          if (err && err.name === "AbortError") return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
         }
       }
 
-      // 2. Android Intent Deep Link for MX Player or VLC
-      const urlToOpen = activeVideoObjectUrl || URL.createObjectURL(blob);
-      if (targetPlayer === "MX") {
-        showToast("Opening MX Player (or select MX Player from system prompt)...");
-        if (navigator.canShare) {
-          try {
-            const fileObj = new File([blob], fileName, { type: mimeType });
-            if (navigator.canShare({ files: [fileObj] })) {
-              await navigator.share({ title: "Open in MX Player", files: [fileObj] });
-              return;
-            }
-          } catch (_) {}
-        }
-        const intentUrl = `intent:${urlToOpen}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`;
-        window.location.href = intentUrl;
-      } else if (targetPlayer === "VLC") {
-        showToast("Opening VLC Media Player...");
-        if (navigator.canShare) {
-          try {
-            const fileObj = new File([blob], fileName, { type: mimeType });
-            if (navigator.canShare({ files: [fileObj] })) {
-              await navigator.share({ title: "Open in VLC", files: [fileObj] });
-              return;
-            }
-          } catch (_) {}
-        }
-        const vlcIntent = `intent:${urlToOpen}#Intent;package=org.videolan.vlc;type=video/*;end`;
-        window.location.href = vlcIntent;
-      } else {
-        // Fallback direct file handoff so mobile OS prompts "Open with MX Player / VLC"
-        const a = document.createElement("a");
-        a.href = urlToOpen;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        showToast("Video handed off to device media player.");
-      }
+      // Final fallback for browsers that cannot share files.
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      showToast("Video download started.");
     }
 
     /*************************************************************************
@@ -2905,9 +2985,7 @@
       document.getElementById("closePlayerBtn").addEventListener("click", stopInAppPlayer);
 
       // External Player Buttons
-      document.getElementById("openMxPlayerBtn").addEventListener("click", () => launchExternalPlayer("MX"));
-      document.getElementById("openVlcPlayerBtn").addEventListener("click", () => launchExternalPlayer("VLC"));
-      document.getElementById("openSystemSharePlayerBtn").addEventListener("click", () => launchExternalPlayer("SHARE"));
+      document.getElementById("openWithAppBtn").addEventListener("click", () => launchExternalPlayer());
 
       // Ambient Light for YouTube™ Extension Popover & Sliders
       const extPop = document.getElementById("ambientExtPopover");
@@ -2924,6 +3002,7 @@
         canvas.style.opacity = ambientEnabled ? (document.getElementById("ambientOpacitySlider").value / 100) : "0";
         dot.className = ambientEnabled ? "w-1.5 h-1.5 rounded-full bg-emerald-400" : "w-1.5 h-1.5 rounded-full bg-zinc-500";
         if (ambientEnabled) startAmbientLightEngine();
+        else stopAmbientLightEngine();
         showToast(ambientEnabled ? "Ambient Light Enabled" : "Ambient Light Off");
       });
       document.getElementById("ambientBlurSlider").addEventListener("input", (e) => {
