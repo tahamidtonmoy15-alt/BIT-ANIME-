@@ -13,6 +13,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
