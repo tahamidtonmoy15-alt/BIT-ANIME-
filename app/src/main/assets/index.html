@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#070709" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>BitAnime — Premium Anime Vault</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://graphql.anilist.co">
+  <link rel="preconnect" href="https://s4.anilist.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #070709;
+      --bg-elevated: rgba(20, 20, 26, 0.72);
+      --accent-cr: #f47521;
+      --accent-gold: #eab308;
+      --ambient-1: #5b21b6;
+      --ambient-2: #c2410c;
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      background-color: var(--bg-base);
+      color: #f4f4f6;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* BitChord-style Ambient Haze Mesh */
+    .ambient-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background: radial-gradient(circle at 18% 12%, var(--ambient-1) 0%, transparent 52%),
+                  radial-gradient(circle at 82% 28%, var(--ambient-2) 0%, transparent 55%),
+                  radial-gradient(circle at 50% 90%, rgba(244, 117, 33, 0.14) 0%, transparent 60%);
+      opacity: 0.34;
+      filter: blur(70px);
+      transition: background 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Apple Music / BitChord Haze Frosted Surfaces */
+    .haze-bar {
+      background: rgba(14, 14, 19, 0.74);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .haze-card {
+      background: rgba(22, 22, 29, 0.62);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.065);
+    }
+
+    .haze-modal {
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(44px) saturate(200%);
+      -webkit-backdrop-filter: blur(44px) saturate(200%);
+    }
+
+    /* Hide Scrollbars cleanly */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Poster Card Aspect & Subtle Lift */
+    .poster-wrap {
+      aspect-ratio: 2 / 3;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #14141b;
+      box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.65);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+    }
+    .poster-wrap:active {
+      transform: scale(0.96);
+    }
+    @media (hover: hover) {
+      .poster-card:hover .poster-wrap {
+        transform: translateY(-4px) scale(1.015);
+        box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255,255,255,0.14);
+      }
+    }
+
+    /* BitChord Bottom Fade Dissolve */
+    .bottom-dissolve {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 110px;
+      background: linear-gradient(to top, #070709 18%, rgba(7, 7, 9, 0.72) 60%, transparent 100%);
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    /* Smooth spring animations */
+    @keyframes slideUpSheet {
+      from { transform: translateY(100%); opacity: 0.4; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .sheet-enter {
+      animation: slideUpSheet 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* YouTube-Style Real-Time Ambient Light Canvas Bleed */
+    .yt-ambient-stage {
+      position: relative;
+      padding: 18px 20px;
+      transition: padding 0.35s ease, background 0.5s ease;
+      overflow: hidden;
+    }
+    .yt-ambient-stage.theater-stage {
+      padding: 6px 6px;
+    }
+    .yt-ambient-canvas {
+      position: absolute;
+      inset: -18%;
+      width: 136%;
+      height: 136%;
+      filter: blur(54px) saturate(215%) brightness(1.18);
+      opacity: 0.88;
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity 0.4s ease, filter 0.3s ease;
+    }
+    .yt-video-frame {
+      position: relative;
+      z-index: 10;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      background: #000;
+      transition: transform 0.3s ease;
+    }
+    .yt-pill-btn {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      transition: all 0.2s ease;
+    }
+    .yt-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .yt-pill-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Fullscreen Mode (Works in both native OS Fullscreen & Sandboxed Viewport Fullscreen) */
+    #playerContainer.is-fullscreen,
+    #playerContainer:fullscreen,
+    #playerContainer:-webkit-full-screen {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: none !important;
+      max-height: none !important;
+      z-index: 9999 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+      background: #040406 !important;
+    }
+
+    #playerContainer.is-fullscreen #ytAmbientStage,
+    #playerContainer:fullscreen #ytAmbientStage,
+    #playerContainer:-webkit-full-screen #ytAmbientStage {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 12px !important;
+      min-height: 0 !important;
+    }
+
+    #playerContainer.is-fullscreen .yt-video-frame,
+    #playerContainer:fullscreen .yt-video-frame,
+    #playerContainer:-webkit-full-screen .yt-video-frame {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    #playerContainer.is-fullscreen #inAppVideo,
+    #playerContainer:fullscreen #inAppVideo,
+    #playerContainer:-webkit-full-screen #inAppVideo {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: calc(100vh - 125px) !important;
+      object-fit: contain !important;
+    }
+
+    video::-webkit-media-controls-fullscreen-button {
+      display: none !important;
+    }
+
+    /* Custom YouTube/BitChord Seekbar Styling */
+    .yt-seek-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      cursor: pointer;
+      transition: height 0.15s ease;
+    }
+    .yt-seek-slider:hover {
+      height: 6px;
+    }
+    .yt-seek-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f47521;
+      box-shadow: 0 0 8px rgba(244, 117, 33, 0.9);
+      cursor: pointer;
+    }
+
+    /* ===================================================================== */
+    /* APPLE iOS 26 REAL-TIME LIQUID GLASS DOCK & INTERACTIVE LENS DROPLET   */
+    /* ===================================================================== */
+    .liquid-glass-dock {
+      --glint-x: 50%;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: center;
+      padding: 6px;
+      background: linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.03) 45%,
+        rgba(8, 8, 12, 0.52) 100%
+      );
+      backdrop-filter: blur(32px) saturate(210%) brightness(1.1);
+      -webkit-backdrop-filter: blur(32px) saturate(210%) brightness(1.1);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow:
+        0 22px 52px -10px rgba(0, 0, 0, 0.78),
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.42),
+        inset 0 -1.5px 2px rgba(0, 0, 0, 0.55),
+        0 0 28px -4px rgba(244, 117, 33, 0.12);
+      overflow: hidden;
+      touch-action: pan-y;
+      cursor: grab;
+    }
+    .liquid-glass-dock:active {
+      cursor: grabbing;
+    }
+
+    /* Interactive Specular Rim Shimmer that follows the sliding droplet */
+    .liquid-glass-dock::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: radial-gradient(
+        55% 95% at var(--glint-x) 0%,
+        rgba(255, 255, 255, 0.36) 0%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 80%
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* True Water-Droplet Optical Glass Lens Indicator (Driven by 60fps Hooke's Law Spring + SVG Refraction) */
+    .liquid-active-pill {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 6px;
+      width: calc((100% - 12px) / 3);
+      border-radius: 9999px;
+      background:
+        radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.06) 55%, rgba(255, 255, 255, 0.14) 100%),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(255, 255, 255, 0.05), rgba(244, 117, 33, 0.14));
+      backdrop-filter: url(#appleLiquidLens) blur(14px) saturate(260%) brightness(1.32);
+      -webkit-backdrop-filter: blur(18px) saturate(260%) brightness(1.32);
+      border: 1.2px solid rgba(255, 255, 255, 0.58);
+      box-shadow:
+        0 10px 28px -4px rgba(0, 0, 0, 0.55),
+        0 0 24px rgba(255, 255, 255, 0.20),
+        inset 0 2.5px 2px rgba(255, 255, 255, 0.88),
+        inset 0 -2.5px 5px rgba(0, 0, 0, 0.30),
+        inset 2px 0 4px rgba(56, 189, 248, 0.25),
+        inset -2px 0 4px rgba(244, 117, 33, 0.25);
+      z-index: 2;
+      pointer-events: none;
+      will-change: transform;
+      transform-origin: center center;
+    }
+
+    /* Curved Water-Meniscus Top Highlight inside the Droplet */
+    .liquid-active-pill::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 12%;
+      right: 12%;
+      height: 44%;
+      border-radius: 9999px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.72) 0%,
+        rgba(255, 255, 255, 0.0) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Tab Button Micro-Spring & Lensing Magnification */
+    .nav-tab {
+      position: relative;
+      z-index: 10;
+      transition:
+        color 0.25s ease,
+        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        text-shadow 0.25s ease;
+    }
+    .nav-tab.is-active-tab {
+      color: #ffffff;
+      transform: scale(1.06);
+      text-shadow: 0 2px 12px rgba(255, 255, 255, 0.55);
+    }
+    .nav-tab.is-active-tab svg {
+      transform: scale(1.15);
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.65));
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  
+
+    /* ================================================================
+       BITANIME — PREMIUM CINEMA HEADER & LIBRARY REDESIGN
+       Visual-only layer: existing IDs, data attributes and event hooks
+       are preserved so the app's current behavior continues to work.
+       ================================================================ */
+    :root {
+      --ui-amber: #ff8a32;
+      --ui-orange: #f47521;
+      --ui-purple: #8b5cf6;
+      --ui-line: rgba(255,255,255,.085);
+      --ui-muted: #9b9aa8;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at 8% 16%, rgba(104, 47, 31, .20), transparent 34%),
+        radial-gradient(ellipse at 88% 14%, rgba(76, 42, 121, .16), transparent 32%),
+        linear-gradient(180deg, #09090d 0%, #100b0d 42%, #0a090d 100%);
+      background-attachment: fixed;
+    }
+
+    .ambient-backdrop { opacity: .25; filter: blur(88px); }
+
+    .app-header {
+      padding-top: max(13px, env(safe-area-inset-top));
+      padding-bottom: 13px;
+      background: linear-gradient(180deg, rgba(8,8,12,.96), rgba(8,8,12,.84) 76%, rgba(8,8,12,.60));
+      border-bottom: 1px solid rgba(255,255,255,.065);
+      box-shadow: 0 12px 34px rgba(0,0,0,.20);
+      backdrop-filter: blur(26px) saturate(155%);
+      -webkit-backdrop-filter: blur(26px) saturate(155%);
+    }
+
+    .app-header-inner, .workspace-main { max-width: 1320px; }
+    .header-top-row { min-height: 43px; }
+    .brand-icon {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: linear-gradient(145deg, #ff9e42 0%, #ed700d 54%, #8f390e 100%);
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 7px 24px rgba(244,117,33,.23), inset 0 1px 0 rgba(255,255,255,.35);
+      position: relative; overflow: hidden;
+    }
+    .brand-icon::after {
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(255,255,255,.25), transparent 48%);
+      pointer-events:none;
+    }
+    .brand-title { font-size: 20px; letter-spacing: -.055em; text-shadow: 0 2px 18px rgba(255,255,255,.10); }
+    #catalogSubtitle { color: #92909e; font-size: 11px; letter-spacing: .01em; }
+    .header-search-actions { max-width: 470px; }
+    #searchInput {
+      min-height: 40px; padding-left: 40px; padding-right: 34px;
+      border-radius: 15px; border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(28,27,36,.86), rgba(16,16,22,.88));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 5px 18px rgba(0,0,0,.16);
+      font-size: 12px;
+    }
+    #searchInput:focus { border-color: rgba(255,145,67,.58); box-shadow: 0 0 0 3px rgba(244,117,33,.10), inset 0 1px 0 rgba(255,255,255,.06); }
+    #searchInput::placeholder { color: #777583; }
+    .header-search-actions > button {
+      min-height: 40px; padding-left: 17px; padding-right: 17px;
+      border-radius: 14px; color: #17110e;
+      background: linear-gradient(135deg, #fff 0%, #f5e9df 100%);
+      box-shadow: 0 7px 22px rgba(0,0,0,.20), inset 0 1px 0 #fff;
+      font-size: 12px; font-weight: 750;
+    }
+    .header-search-actions > button:hover { background: linear-gradient(135deg, #fff4e8, #ffd9b9); transform: translateY(-1px); }
+
+    .category-nav-shell { margin-top: 11px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.055); }
+    .category-nav-heading { display:flex; align-items:center; gap:9px; margin: 0 1px 7px; }
+    .category-nav-eyebrow { color:#d7a47e; font-size:9px; line-height:1; font-weight:800; letter-spacing:.17em; }
+    .category-nav-caption { color:#777583; font-size:10px; line-height:1; }
+    .category-strip { gap:7px; padding: 0 1px 2px; scroll-snap-type:x proximity; }
+    .category-strip .cat-pill {
+      padding: 8px 13px; min-height: 34px; border-radius: 11px;
+      border: 1px solid rgba(255,255,255,.075);
+      background: linear-gradient(180deg, rgba(29,28,36,.88), rgba(18,17,23,.90));
+      color: #c5c2ce; font-size: 11px; font-weight: 650; letter-spacing: -.01em;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+      scroll-snap-align:start; white-space:nowrap;
+    }
+    .category-strip .cat-pill:hover { color:#fff; border-color:rgba(255,160,95,.30); background:rgba(43,31,29,.94); }
+    .category-strip .cat-pill.bg-white {
+      background: linear-gradient(135deg, #fff8f1, #ffe0c7) !important;
+      color:#21140c !important; border-color:rgba(255,255,255,.9) !important;
+      box-shadow: 0 5px 17px rgba(244,117,33,.14), inset 0 1px 0 #fff;
+    }
+
+    .workspace-main { padding-top: 17px; }
+    #heroSpotlight { margin-bottom: 21px; }
+    .hero-feature-card {
+      position:relative; isolation:isolate; overflow:hidden;
+      min-height: 174px; padding: 21px 24px;
+      display:flex; align-items:center; justify-content:space-between; gap:24px;
+      border-radius: 24px;
+      background: linear-gradient(112deg, rgba(27,22,26,.98) 0%, rgba(31,20,23,.93) 48%, rgba(27,17,23,.98) 100%);
+      border:1px solid rgba(255,255,255,.105);
+      box-shadow: 0 17px 50px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.055);
+    }
+    .hero-feature-card::before {
+      content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+      background: radial-gradient(ellipse at 88% 8%, color-mix(in srgb, var(--hero-color-b, #f47521) 36%, transparent), transparent 40%),
+                  radial-gradient(ellipse at 8% 100%, color-mix(in srgb, var(--hero-color-a, #8b5cf6) 19%, transparent), transparent 52%),
+                  linear-gradient(115deg, transparent 25%, rgba(255,255,255,.025) 62%, transparent 100%);
+      opacity:.9;
+    }
+    .hero-feature-card::after {
+      content:""; position:absolute; width:330px; height:330px; right:8%; top:-230px;
+      border:1px solid rgba(255,255,255,.055); border-radius:50%;
+      box-shadow:0 0 0 28px rgba(255,255,255,.014), 0 0 0 58px rgba(255,255,255,.012);
+      pointer-events:none; z-index:-1;
+    }
+    .hero-feature-inner { width:100%; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .hero-feature-main { display:flex; align-items:center; gap:19px; min-width:0; }
+    .hero-feature-poster {
+      width:88px; aspect-ratio:2/3; object-fit:cover; flex-shrink:0;
+      border-radius:13px; border:1px solid rgba(255,255,255,.22);
+      box-shadow:0 10px 28px rgba(0,0,0,.50), 0 0 0 4px rgba(255,255,255,.025);
+      cursor:pointer; transition:transform .25s ease, box-shadow .25s ease;
+    }
+    .hero-feature-poster:hover { transform:translateY(-3px) rotate(-1deg); box-shadow:0 16px 32px rgba(0,0,0,.5),0 0 0 1px rgba(255,170,110,.45); }
+    .hero-feature-copy { min-width:0; max-width:600px; }
+    .hero-feature-label-row { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:7px; }
+    .hero-feature-label {
+      display:inline-flex; align-items:center; gap:7px; padding:5px 9px;
+      border-radius:7px; color:#ffb477; background:rgba(244,117,33,.13);
+      border:1px solid rgba(244,117,33,.20); font-size:9px; font-weight:850; letter-spacing:.11em;
+    }
+    .hero-live-dot { width:6px;height:6px;border-radius:50%;background:#ff963d;box-shadow:0 0 10px rgba(255,150,61,.9); }
+    .hero-feature-category { color:#aaa5b1; font-size:11px; }
+    .hero-feature-title { color:#fff; font-size:clamp(19px,2.2vw,25px); font-weight:850; line-height:1.15; letter-spacing:-.045em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .hero-feature-subtitle { margin-top:6px; color:#aaa6b0; font-size:11px; font-weight:500; }
+    .hero-feature-subtitle span { padding:0 3px; color:#77727e; }
+    .hero-progress-meta { display:flex; align-items:center; justify-content:space-between; max-width:300px; margin-top:13px; margin-bottom:6px; }
+    .hero-progress-meta span { color:#827d89; font-size:8px; font-weight:800; letter-spacing:.14em; }
+    .hero-progress-meta strong { color:#f6b16d; font-size:10px; font-weight:800; font-variant-numeric:tabular-nums; }
+    .hero-progress-track { width:min(300px, 58vw); height:5px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.10); box-shadow:inset 0 1px 2px rgba(0,0,0,.4); }
+    .hero-progress-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#f47521,#ffbd69); box-shadow:0 0 12px rgba(244,117,33,.4); }
+    .hero-feature-action {
+      flex-shrink:0; display:inline-flex; align-items:center; gap:9px;
+      min-height:43px; padding:0 17px; border-radius:13px;
+      background:linear-gradient(135deg,#fff9f3 0%,#ffd8b8 100%); color:#21140d;
+      font-size:11px; font-weight:800; box-shadow:0 9px 24px rgba(0,0,0,.24), inset 0 1px 0 #fff;
+      transition:transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    .hero-feature-action:hover { transform:translateY(-2px); filter:brightness(1.04); box-shadow:0 13px 28px rgba(0,0,0,.30),0 0 22px rgba(244,117,33,.12); }
+    .hero-feature-action:active { transform:scale(.97); }
+    .hero-feature-action svg { width:13px;height:13px; }
+    .hero-action-arrow { margin-left:2px; font-size:13px; opacity:.65; }
+
+    .library-toolbar {
+      margin-bottom:22px; padding:15px 17px 13px;
+      border:1px solid rgba(255,255,255,.075); border-radius:18px;
+      background:linear-gradient(120deg,rgba(22,21,28,.83),rgba(16,15,21,.78));
+      box-shadow:0 9px 28px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    }
+    .library-toolbar-heading { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:13px; }
+    .library-heading-copy { min-width:0; }
+    .library-eyebrow { display:flex; align-items:center; gap:7px; color:#d49b71; font-size:8px; font-weight:850; letter-spacing:.17em; }
+    .library-eyebrow-dot { width:5px;height:5px;border-radius:50%;background:#f58a3b;box-shadow:0 0 9px rgba(245,138,59,.7); }
+    .library-heading-copy h2 { margin-top:4px; color:#f7f5f8; font-size:17px; font-weight:800; letter-spacing:-.04em; line-height:1.2; }
+    .library-heading-copy p { margin-top:3px; color:#827f8b; font-size:10px; }
+    .library-toolbar-meta { display:flex; align-items:center; justify-content:flex-end; gap:9px; flex-shrink:0; }
+    #visibleCountBadge { color:#9895a1; font-size:10px; font-weight:600; white-space:nowrap; }
+    .poster-sync-button {
+      display:inline-flex; align-items:center; justify-content:center; gap:7px;
+      min-height:32px; padding:0 11px; border-radius:10px;
+      color:#ffd0a5; border:1px solid rgba(244,117,33,.24);
+      background:linear-gradient(135deg,rgba(244,117,33,.15),rgba(139,92,246,.08));
+      font-size:10px; font-weight:750; white-space:nowrap;
+      transition:background .2s ease,transform .2s ease,border-color .2s ease;
+    }
+    .poster-sync-button:hover { background:rgba(244,117,33,.22); border-color:rgba(244,117,33,.42); transform:translateY(-1px); }
+    .poster-sync-button:active { transform:scale(.97); }
+    .library-toolbar-filters { display:flex; align-items:center; gap:11px; padding-top:11px; border-top:1px solid rgba(255,255,255,.055); }
+    .filter-label { color:#777481; font-size:8px; font-weight:850; letter-spacing:.15em; flex-shrink:0; }
+    .status-filter-row { gap:7px; min-width:0; }
+    .status-filter-row .status-chip {
+      padding:7px 12px; min-height:31px; border-radius:9px;
+      border:1px solid rgba(255,255,255,.075); background:rgba(255,255,255,.035);
+      color:#b7b3c0; font-size:10px; font-weight:650; white-space:nowrap;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+      transition:all .18s ease;
+    }
+    .status-filter-row .status-chip:hover { color:#fff; border-color:rgba(255,255,255,.16); background:rgba(255,255,255,.075); }
+    .status-filter-row .status-chip.bg-orange-500 {
+      color:#21140d !important; border-color:rgba(255,203,158,.8) !important;
+      background:linear-gradient(135deg,#ffb36f,#f47a28) !important;
+      box-shadow:0 4px 14px rgba(244,117,33,.17),inset 0 1px 0 rgba(255,255,255,.5);
+    }
+
+    @media (min-width: 900px) {
+      .category-strip { scrollbar-width:none; }
+      .category-strip::-webkit-scrollbar { display:none; }
+    }
+    @media (max-width: 700px) {
+      .app-header { padding-left:12px; padding-right:12px; }
+      .workspace-main { padding-left:12px; padding-right:12px; }
+      .hero-feature-card { padding:17px; border-radius:20px; }
+      .hero-feature-poster { width:76px; }
+      .hero-feature-main { gap:14px; }
+      .library-toolbar { padding:13px 12px 11px; }
+    }
+    @media (max-width: 540px) {
+      .header-top-row { flex-wrap:wrap; row-gap:11px; }
+      .header-search-actions { width:100%; max-width:none; flex:1 1 100%; }
+      #searchInput { min-height:39px; }
+      .category-nav-shell { margin-top:9px; }
+      .category-nav-caption { display:none; }
+      .category-strip .cat-pill { min-height:32px; padding:7px 10px; font-size:10px; }
+      .workspace-main { padding-top:12px; }
+      .hero-feature-card { padding:14px; }
+      .hero-feature-inner { align-items:stretch; gap:12px; flex-direction:column; }
+      .hero-feature-main { align-items:center; }
+      .hero-feature-poster { width:66px; border-radius:10px; }
+      .hero-feature-label { font-size:8px; padding:4px 7px; }
+      .hero-feature-category { font-size:9px; }
+      .hero-feature-title { font-size:18px; }
+      .hero-feature-subtitle { font-size:10px; }
+      .hero-progress-meta { margin-top:9px; }
+      .hero-progress-track { width:100%; }
+      .hero-feature-action { min-height:38px; width:100%; justify-content:center; }
+      .library-toolbar-heading { align-items:flex-start; gap:8px; }
+      .library-heading-copy h2 { font-size:15px; }
+      .library-heading-copy p { max-width:205px; font-size:9px; }
+      .library-toolbar-meta { flex-direction:column; align-items:flex-end; gap:6px; }
+      #visibleCountBadge { font-size:9px; }
+      .poster-sync-button { min-height:29px; padding:0 8px; font-size:9px; }
+      .library-toolbar-filters { align-items:flex-start; flex-direction:column; gap:7px; }
+      .filter-label { display:none; }
+      .status-filter-row { width:100%; }
+      .status-filter-row .status-chip { min-height:30px; padding:6px 10px; font-size:9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-feature-poster, .hero-feature-action, .poster-sync-button, .status-filter-row .status-chip { transition:none !important; }
+    }
+
+  </style>
+</head>
+<body class="min-h-screen pb-32 selection:bg-orange-500/30 selection:text-orange-200">
+
+  <!-- Ambient Artwork-Driven Mesh Backdrop -->
+  <div id="ambientBackdrop" class="ambient-backdrop"></div>
+
+  <!-- Top Sticky Header (Minimalist Apple TV + BitChord Bar) -->
+  <header class="app-header sticky top-0 z-30 px-4 pt-3 pb-2.5">
+    <div class="app-header-inner max-w-7xl mx-auto flex flex-col gap-2.5">
+      <div class="header-top-row flex items-center justify-between gap-3">
+        <!-- Brand Identity -->
+        <div class="flex items-center gap-2.5">
+          <div class="brand-icon w-9 h-9 rounded-xl bg-gradient-to-br from-[#f47521] via-[#d97706] to-[#7c2d12] flex items-center justify-center shadow-lg shadow-orange-950/50 border border-white/15">
+            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 6.4C4 5.07452 5.07452 4 6.4 4H17.6C18.9255 4 20 5.07452 20 6.4V17.6C20 18.9255 18.9255 20 17.6 20H6.4C5.07452 20 4 18.9255 4 17.6V6.4ZM9.5 8.5V15.5L15.5 12L9.5 8.5Z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="brand-title text-lg font-bold tracking-tight text-white leading-none">BitAnime</h1>
+              <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/[0.08] text-orange-400 border border-white/10">Vault</span>
+            </div>
+            <p id="catalogSubtitle" class="text-[11px] text-zinc-400 font-medium mt-0.5">251 Curated Dubs • Offline IndexedDB</p>
+          </div>
+        </div>
+
+        <!-- Search & Add Anime Controls -->
+        <div class="header-search-actions flex items-center gap-2 flex-1 max-w-md justify-end">
+          <div class="relative flex-1 max-w-[230px] sm:max-w-xs">
+            <svg class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Search 251+ anime..."
+              class="w-full pl-8 pr-7 py-1.5 text-xs sm:text-sm rounded-full haze-bar text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500/50 transition"
+            />
+            <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white text-xs">✕</button>
+          </div>
+
+          <button
+            id="openAddAnimeBtn"
+            title="Add New Anime"
+            class="h-8 px-3 rounded-full bg-white text-black hover:bg-zinc-200 active:scale-95 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm shrink-0"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            <span class="hidden sm:inline">Add Anime</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Category Navigation -->
+      <div class="category-nav-shell">
+        <div class="category-nav-heading"><span class="category-nav-eyebrow">DISCOVER</span><span class="category-nav-caption">Browse your genres</span></div>
+        <div id="categoryStrip" class="category-strip flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <main class="workspace-main relative z-10 max-w-7xl mx-auto px-4 pt-2">
+
+    <!-- Featured / Continue Watching Banner (Dynamic based on active or recent anime) -->
+    <section id="heroSpotlight" class="mb-5"></section>
+
+    <!-- Premium Library Toolbar -->
+    <section class="library-toolbar mb-5">
+      <div class="library-toolbar-heading">
+        <div class="library-heading-copy">
+          <span class="library-eyebrow"><span class="library-eyebrow-dot"></span> YOUR COLLECTION</span>
+          <h2>Anime Library</h2>
+          <p>Find your next favorite and keep your watchlist in sync.</p>
+        </div>
+        <div class="library-toolbar-meta">
+          <span id="visibleCountBadge">Showing 251 titles</span>
+          <button id="syncPostersBtn" class="poster-sync-button" title="Find accurate posters from AniList">
+            <svg id="syncSpinner" class="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span id="syncBtnLabel">HD Posters</span>
+          </button>
+        </div>
+      </div>
+      <div class="library-toolbar-filters">
+        <span class="filter-label">FILTER BY</span>
+        <div id="statusFilterRow" class="status-filter-row flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button data-status="ALL" class="status-chip px-3 py-1 rounded-full text-xs font-medium bg-orange-500 text-black transition">All Titles</button>
+          <button data-status="Watching" class="status-chip px-3 py-1 rounded-full text-xs font-medium haze-card text-zinc-300 hover:text-white transition">Watching</button>
+          <button data-status="Completed" class="status-chip px-3 py-1 rounded-full text-xs font-medium haze-card text-zinc-300 hover:text-white transition">Completed</button>
+          <button data-status="Plan" class="status-chip px-3 py-1 rounded-full text-xs font-medium haze-card text-zinc-300 hover:text-white transition">Plan to Watch</button>
+          <button data-status="HAS_VIDEO" class="status-chip px-3 py-1 rounded-full text-xs font-medium haze-card text-emerald-300 hover:text-white transition flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Offline Videos
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Weekly Schedule View (Shown when Weekly tab is active) -->
+    <section id="weeklySection" class="hidden mb-8">
+      <div class="haze-card rounded-2xl p-4 mb-4 border border-orange-500/20">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="text-orange-400">●</span> Weekly Simulcast & Watch Tracker
+            </h2>
+            <p class="text-xs text-zinc-400">Tap the calendar icon on any anime card or inside its detail view to pin it to your weekly rotation.</p>
+          </div>
+          <div id="weeklyDayFilter" class="flex items-center gap-1 overflow-x-auto no-scrollbar"></div>
+        </div>
+        <div id="weeklyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5"></div>
+      </div>
+    </section>
+
+    <!-- Offline Vault Overview Banner (Shown when Vault tab is active) -->
+    <section id="vaultSection" class="hidden mb-6">
+      <div class="haze-card rounded-2xl p-4 border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">IndexedDB Vault</span>
+            <h2 class="text-sm font-bold text-white">Gallery-Independent Offline Video Storage</h2>
+          </div>
+          <p class="text-xs text-zinc-400 mt-1">Videos imported into any episode are saved inside this app's local database. Deleting them from your phone Gallery will not remove them here.</p>
+        </div>
+        <div class="flex items-center gap-3 self-end sm:self-center shrink-0">
+          <div class="text-right">
+            <div id="vaultStatsCount" class="text-sm font-bold text-white">0 Episodes Saved</div>
+            <div id="vaultStatsSize" class="text-[11px] text-zinc-400">0 MB used in app</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Anime Poster Grid -->
+    <section id="animeGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4"></section>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden py-16 text-center">
+      <div class="w-12 h-12 rounded-2xl haze-card mx-auto flex items-center justify-center text-zinc-500 mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+        </svg>
+      </div>
+      <p class="text-sm font-semibold text-zinc-300">No matching anime found</p>
+      <p class="text-xs text-zinc-500 mt-1">Try another filter or add a new anime to your collection.</p>
+    </div>
+
+  </main>
+
+  <!-- SVG Optical Refraction Filter for Apple iOS 26 Liquid Glass Lens -->
+  <svg width="0" height="0" class="fixed pointer-events-none opacity-0" aria-hidden="true">
+    <filter id="appleLiquidLens" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.04" numOctaves="2" seed="4" result="noise" />
+      <feGaussianBlur in="noise" stdDeviation="2.5" result="smoothNoise" />
+      <feDisplacementMap in="SourceGraphic" in2="smoothNoise" scale="11" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  <!-- BitChord Frosted Bottom Dissolve + Floating Navigation Pill -->
+  <div class="bottom-dissolve"></div>
+  <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md select-none">
+    <div id="liquidGlassDock" class="liquid-glass-dock rounded-full">
+      <!-- Apple iOS 26 / visionOS Translucent Liquid Glass Sliding Droplet -->
+      <div id="liquidActivePill" class="liquid-active-pill"></div>
+
+      <button data-nav="HOME" data-nav-idx="0" class="nav-tab is-active-tab py-2.5 px-3 rounded-full flex items-center justify-center gap-1.5 text-xs font-bold text-white">
+        <svg class="w-4 h-4 transition-transform" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <span>Play</span>
+      </button>
+      <button data-nav="WEEKLY" data-nav-idx="1" class="nav-tab py-2.5 px-3 rounded-full flex items-center justify-center gap-1.5 text-xs font-semibold text-white/60 hover:text-white/90">
+        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span>Weekly</span>
+        <span id="weeklyNavBadge" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-orange-500/25 text-orange-300 border border-orange-400/20">0</span>
+      </button>
+      <button data-nav="VAULT" data-nav-idx="2" class="nav-tab py-2.5 px-3 rounded-full flex items-center justify-center gap-1.5 text-xs font-semibold text-white/60 hover:text-white/90">
+        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+        </svg>
+        <span>Vault</span>
+        <span id="vaultNavBadge" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-400/20">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- ANIME DETAIL & EPISODE VAULT SHEET (BitChord Full-Bleed Modal)        -->
+  <!-- ===================================================================== -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden flex-col justify-end bg-black/75 backdrop-blur-md">
+    <div id="detailSheet" class="haze-modal w-full max-w-4xl mx-auto rounded-t-3xl sm:rounded-3xl sm:mb-4 max-h-[92vh] flex flex-col overflow-hidden border border-white/10 shadow-2xl sheet-enter">
+      
+      <!-- Dynamic Artwork Header Banner -->
+      <div class="relative p-4 sm:p-6 pb-4 border-b border-white/[0.07] overflow-hidden shrink-0">
+        <div id="detailAmbientGlow" class="absolute inset-0 opacity-35 blur-2xl pointer-events-none"></div>
+        
+        <div class="relative z-10 flex items-start gap-4">
+          <!-- Poster Preview + Change Poster Button -->
+          <div class="relative w-24 sm:w-28 aspect-[2/3] rounded-xl overflow-hidden shadow-xl shrink-0 border border-white/15 group bg-zinc-900">
+            <img id="detailPosterImg" src="" alt="" class="w-full h-full object-cover" />
+            <label class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 active:opacity-100 flex flex-col items-center justify-center text-[10px] font-semibold text-white cursor-pointer transition">
+              <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+              <span>Poster</span>
+              <input id="customPosterInput" type="file" accept="image/*" class="hidden" />
+            </label>
+          </div>
+
+          <!-- Title, Category, Status & Weekly Controls -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span id="detailCategoryBadge" class="inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/10 text-orange-300 mb-1"></span>
+                <h2 id="detailTitle" class="text-lg sm:text-xl font-extrabold text-white leading-tight break-words"></h2>
+              </div>
+              <button id="closeDetailBtn" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300 hover:text-white shrink-0">✕</button>
+            </div>
+
+            <!-- Watch Status Selector (Apple Segmented Style) -->
+            <div class="flex items-center gap-1.5 flex-wrap mt-3">
+              <button data-set-status="Watching" class="detail-status-btn px-2.5 py-1 rounded-lg text-xs font-semibold border border-white/10 transition">▶ Watching</button>
+              <button data-set-status="Completed" class="detail-status-btn px-2.5 py-1 rounded-lg text-xs font-semibold border border-white/10 transition">✓ Completed</button>
+              <button data-set-status="Plan" class="detail-status-btn px-2.5 py-1 rounded-lg text-xs font-semibold border border-white/10 transition">• Plan</button>
+              <button data-set-status="Unwatched" class="detail-status-btn px-2.5 py-1 rounded-lg text-xs font-semibold border border-white/10 transition">Unwatched</button>
+            </div>
+
+            <!-- Weekly Schedule Pin + Day Selector -->
+            <div class="flex items-center gap-2 flex-wrap mt-2.5">
+              <button id="toggleWeeklyBtn" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition"></button>
+              <select id="weeklyDaySelect" class="bg-zinc-900/90 border border-white/10 rounded-lg px-2 py-1 text-xs text-zinc-200 focus:outline-none">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+              <button id="deleteAnimeBtn" class="ml-auto text-[11px] text-rose-400/80 hover:text-rose-300 px-2 py-1 rounded-lg hover:bg-rose-500/10 transition">Remove Title</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Body: Video Player (when active) + Season Builder + Episode List -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+
+        <!-- IN-APP YOUTUBE AMBIENT LIGHT CINEMA PLAYER + EXTERNAL PLAYER LAUNCHER -->
+        <div id="playerContainer" class="hidden rounded-3xl overflow-hidden bg-[#0b0b0f] border border-white/15 shadow-2xl relative">
+          
+          <!-- Top Bar: Now Playing + Built-in "Ambient Light for YouTube™" Extension Menu + Close -->
+          <div class="relative z-20 flex items-center justify-between px-4 py-2.5 bg-zinc-950/85 backdrop-blur-xl border-b border-white/10">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+              <span id="nowPlayingLabel" class="text-xs font-semibold text-zinc-100 truncate">Now Playing</span>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <!-- Ambient Light Extension Trigger Button (Puzzle/Sun Icon like Chrome/YouTube Extension) -->
+              <button
+                id="ambientExtMenuBtn"
+                title="Ambient Light for Cinema™ Extension Settings"
+                class="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-[11px] font-semibold text-sky-300 flex items-center gap-1.5 transition"
+              >
+                <svg class="w-3.5 h-3.5 text-sky-400 animate-spin" style="animation-duration: 9s;" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a1.5 1.5 0 011.5 1.5v2a1.5 1.5 0 01-3 0v-2A1.5 1.5 0 0112 2zm0 15a1.5 1.5 0 011.5 1.5v2a1.5 1.5 0 01-3 0v-2A1.5 1.5 0 0112 17zm10-5a1.5 1.5 0 01-1.5 1.5h-2a1.5 1.5 0 010-3h2A1.5 1.5 0 0122 12zM7 12a1.5 1.5 0 01-1.5 1.5h-2a1.5 1.5 0 010-3h2A1.5 1.5 0 017 12zm11.36-6.36a1.5 1.5 0 010 2.12l-1.41 1.41a1.5 1.5 0 11-2.12-2.12l1.41-1.41a1.5 1.5 0 012.12 0zM9.17 14.83a1.5 1.5 0 010 2.12l-1.41 1.41a1.5 1.5 0 01-2.12-2.12l1.41-1.41a1.5 1.5 0 012.12 0zm9.19 3.53a1.5 1.5 0 01-2.12 0l-1.41-1.41a1.5 1.5 0 012.12-2.12l1.41 1.41a1.5 1.5 0 010 2.12zM9.17 9.17a1.5 1.5 0 01-2.12 0L5.64 7.76a1.5 1.5 0 012.12-2.12l1.41 1.41a1.5 1.5 0 010 2.12zM12 8a4 4 0 100 8 4 4 0 000-8z"/>
+                </svg>
+                <span>Ambient Light</span>
+                <span id="ambientStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              </button>
+
+              <button id="closePlayerBtn" class="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-zinc-300 hover:text-white flex items-center justify-center transition">Close Player ✕</button>
+            </div>
+          </div>
+
+          <!-- Floating "Extensions -> Ambient light for YouTube™" Popover Panel -->
+          <div id="ambientExtPopover" class="hidden absolute top-12 right-3 z-30 w-72 rounded-2xl bg-[#18181f]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-3.5 space-y-3 text-xs">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <div>
+                <p class="font-bold text-white text-xs">Extensions</p>
+                <p class="text-[10px] text-zinc-400">Real-time frame color projection</p>
+              </div>
+              <button id="closeAmbientExtBtn" class="text-zinc-400 hover:text-white text-xs px-1">✕</button>
+            </div>
+
+            <div class="flex items-center justify-between py-1">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">☼</span>
+                <div>
+                  <p class="font-semibold text-zinc-100 text-xs">Ambient light for Cinema™</p>
+                  <p class="text-[10px] text-emerald-400">60fps Dynamic Edge Glow</p>
+                </div>
+              </div>
+              <input id="ambientToggleCheck" type="checkbox" checked class="w-4 h-4 accent-orange-500 rounded cursor-pointer" />
+            </div>
+
+            <div class="space-y-1.5 pt-1 border-t border-white/10">
+              <div class="flex justify-between text-[11px] text-zinc-300">
+                <span>Glow Spread & Blur</span>
+                <span id="ambientBlurVal">54px</span>
+              </div>
+              <input id="ambientBlurSlider" type="range" min="20" max="95" value="54" class="w-full accent-orange-500 cursor-pointer h-1.5 bg-white/10 rounded-lg" />
+
+              <div class="flex justify-between text-[11px] text-zinc-300 pt-1">
+                <span>Ambient Intensity</span>
+                <span id="ambientOpacityVal">88%</span>
+              </div>
+              <input id="ambientOpacitySlider" type="range" min="15" max="100" value="88" class="w-full accent-orange-500 cursor-pointer h-1.5 bg-white/10 rounded-lg" />
+            </div>
+          </div>
+
+          <!-- YOUTUBE AMBIENT LIGHT STAGE (Real-Time Canvas Projection around Video) -->
+          <div id="ytAmbientStage" class="yt-ambient-stage">
+            <canvas id="ambientLightCanvas" width="64" height="36" class="yt-ambient-canvas"></canvas>
+            <div class="yt-video-frame group/vframe select-none">
+              <!-- Native controls removed so the dead grey browser fullscreen icon never appears -->
+              <video id="inAppVideo" playsinline class="w-full max-h-[380px] bg-black block cursor-pointer"></video>
+
+              <!-- Top-Right Working Fullscreen Badge -->
+              <button
+                id="videoCornerFsBtn"
+                title="Toggle Fullscreen (or Double-Click Video)"
+                class="absolute top-3 right-3 z-20 px-2.5 py-1.5 rounded-xl bg-black/70 hover:bg-orange-500 hover:text-black text-white backdrop-blur-md border border-white/15 flex items-center gap-1.5 text-xs font-bold shadow-lg transition active:scale-95"
+              >
+                <svg id="fsCornerIconExpand" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/>
+                </svg>
+                <span id="fsCornerLabel">Fullscreen</span>
+              </button>
+
+              <!-- Custom Sleek YouTube / Apple Cinema Bottom Control Bar (Zero Dead Icons!) -->
+              <div class="absolute inset-x-0 bottom-0 z-20 pt-8 pb-2.5 px-3.5 bg-gradient-to-t from-black/90 via-black/55 to-transparent flex flex-col gap-2 transition-opacity duration-200">
+                <!-- Interactive Progress / Seek Bar -->
+                <input
+                  id="customVideoSeek"
+                  type="range"
+                  min="0"
+                  max="1000"
+                  value="0"
+                  class="yt-seek-slider w-full"
+                />
+
+                <!-- Controls Row: Play/Pause, Skip -10/+10s, Timecode, Volume & Mute -->
+                <div class="flex items-center justify-between gap-3 text-white">
+                  <div class="flex items-center gap-2.5">
+                    <button id="customPlayPauseBtn" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition active:scale-90" title="Play / Pause">
+                      <svg id="customPlayIcon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                      <svg id="customPauseIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+
+                    <button id="customRewindBtn" class="text-[11px] font-bold text-zinc-300 hover:text-white px-1.5 py-0.5 rounded hover:bg-white/10 transition" title="Rewind 10s">-10s</button>
+                    <button id="customForwardBtn" class="text-[11px] font-bold text-zinc-300 hover:text-white px-1.5 py-0.5 rounded hover:bg-white/10 transition" title="Forward 10s">+10s</button>
+
+                    <span id="customTimeDisplay" class="text-xs font-mono font-semibold text-zinc-200 ml-1">0:00 / 0:00</span>
+                  </div>
+
+                  <!-- Right Side: Volume Mute Toggle & Slider only (Disabled native fullscreen icon completely gone!) -->
+                  <div class="flex items-center gap-2">
+                    <button id="customMuteBtn" class="w-7 h-7 rounded-full hover:bg-white/15 flex items-center justify-center text-zinc-200 hover:text-white transition" title="Mute / Unmute">
+                      <svg id="customVolIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                      </svg>
+                    </button>
+                    <input
+                      id="customVolumeSlider"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value="1"
+                      class="w-16 sm:w-20 accent-white h-1 bg-white/25 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- YOUTUBE-STYLE WATCH METADATA + PILL ACTION BAR + MX / VLC EXTERNAL HANDOFF -->
+          <div class="relative z-10 px-4 py-3.5 bg-gradient-to-b from-zinc-950/80 to-[#09090d] border-t border-white/10 space-y-3">
+            
+            <!-- Row 1: YouTube-Style Title, Episode Navigation & Cinema Action Pills -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div class="min-w-0">
+                <h4 id="ytWatchTitle" class="text-sm sm:text-base font-extrabold text-white truncate">Dandadan — Episode 1</h4>
+                <p id="ytWatchSub" class="text-[11px] text-zinc-400 truncate">Season 1 • Offline IndexedDB Vault • Ambient Cinema Mode</p>
+              </div>
+
+              <!-- YouTube-Style Rounded Action Pills -->
+              <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+                <button id="prevEpPlayerBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-200 flex items-center gap-1" title="Previous Episode">
+                  <span>⏮</span><span>Prev</span>
+                </button>
+                <button id="nextEpPlayerBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-200 flex items-center gap-1" title="Next Episode">
+                  <span>Next</span><span>⏭</span>
+                </button>
+                <button id="speedCycleBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-bold text-orange-300" title="Playback Speed">
+                  1.0x
+                </button>
+                <button id="pipModeBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-200" title="Picture-in-Picture Floating Window">
+                  PiP
+                </button>
+                <button id="theaterModeBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-200" title="Toggle Wide Theater Stage">
+                  Theater
+                </button>
+                <button id="fullscreenModeBtn" class="yt-pill-btn px-3 py-1.5 rounded-full text-xs font-bold text-emerald-300 flex items-center gap-1" title="Full Screen Cinema Mode (Esc to exit)">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/>
+                  </svg>
+                  <span id="fsPillLabel">Fullscreen</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 2: Telegram / YouTube-style External Player Handoff Bar (MX Player / VLC / System Share) -->
+            <div class="pt-2.5 border-t border-white/[0.07] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+              <div class="text-[11px] text-zinc-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                <span><strong class="text-zinc-200">External Player Handoff:</strong> Open video directly in your mobile player</span>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button
+                  id="openMxPlayerBtn"
+                  class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-full bg-[#1e40af] hover:bg-[#1d4ed8] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-blue-950/50 transition active:scale-95"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  <span>MX Player</span>
+                </button>
+                <button
+                  id="openVlcPlayerBtn"
+                  class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-full bg-[#ea580c] hover:bg-[#f97316] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-orange-950/50 transition active:scale-95"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                  <span>VLC Player</span>
+                </button>
+                <button
+                  id="openSystemSharePlayerBtn"
+                  class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-full yt-pill-btn text-zinc-100 text-xs font-semibold flex items-center justify-center gap-1.5"
+                  title="Uses system Open With / Share sheet (Telegram style)"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                  </svg>
+                  <span>Open With App...</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- APPLE TV / BITCHORD ULTRA-CLEAN SEASON & EPISODE HEADER -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <!-- Season Pill Selector -->
+            <div id="seasonTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
+
+            <!-- Right Controls: Watched Progress + Layout Switcher (Grid/Tracklist) + Edit Season Gear -->
+            <div class="flex items-center gap-2 ml-auto">
+              <span id="seasonProgressLabel" class="text-[11px] font-semibold text-zinc-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">0 / 12 Watched</span>
+
+              <!-- View Switcher: Compact Grid vs BitChord Tracklist -->
+              <div class="flex items-center p-0.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
+                <button id="viewModeGridBtn" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white text-black transition" title="Compact Episode Grid">Grid</button>
+                <button id="viewModeListBtn" class="px-2.5 py-1 rounded-full text-[11px] font-semibold text-zinc-400 hover:text-white transition" title="Minimalist Tracklist">List</button>
+              </div>
+
+              <!-- Toggle Season Config Drawer -->
+              <button
+                id="toggleSeasonSettingsBtn"
+                title="Customize Seasons & Episode Count"
+                class="px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-[11px] font-semibold text-zinc-300 flex items-center gap-1 transition"
+              >
+                <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
+                </svg>
+                <span>Edit Season</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible Season & Episode Customizer Drawer (Hidden by default to prevent visual clutter) -->
+          <div id="seasonConfigDrawer" class="hidden haze-card rounded-2xl p-3.5 space-y-3 border border-white/10">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] text-zinc-400">Season Name:</label>
+                <input
+                  id="currentSeasonNameInput"
+                  type="text"
+                  class="w-32 sm:w-40 px-2.5 py-1 rounded-lg bg-black/50 border border-white/10 text-xs font-semibold text-white focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] text-zinc-400">Total Episodes:</label>
+                <div class="flex items-center bg-black/50 border border-white/10 rounded-lg overflow-hidden">
+                  <button id="decEpCountBtn" class="px-2.5 py-1 text-xs text-zinc-300 hover:bg-white/10">−</button>
+                  <input
+                    id="episodeCountInput"
+                    type="number"
+                    min="1"
+                    max="1200"
+                    class="w-12 text-center bg-transparent text-xs font-bold text-white focus:outline-none"
+                  />
+                  <button id="incEpCountBtn" class="px-2.5 py-1 text-xs text-zinc-300 hover:bg-white/10">+</button>
+                </div>
+                <button id="applyEpCountBtn" class="px-2.5 py-1 rounded-lg bg-orange-500 text-black text-xs font-bold hover:bg-orange-400 transition">Set</button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.06] flex-wrap">
+              <!-- Add Custom Season inline -->
+              <div class="flex items-center gap-1.5">
+                <input
+                  id="newSeasonNameInput"
+                  type="text"
+                  placeholder="New Season (e.g. S2)"
+                  class="w-36 px-2.5 py-1 rounded-lg bg-black/50 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
+                />
+                <button
+                  id="addSeasonBtn"
+                  class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition"
+                >
+                  + Season
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2 ml-auto">
+                <button id="markAllWatchedBtn" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 font-medium transition">✓ All Watched</button>
+                <button id="deleteSeasonBtn" class="text-[11px] px-2 py-1 rounded-lg text-zinc-400 hover:text-rose-400 transition" title="Delete current season">Delete Season</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- EPISODE DECK (Supports Clean Grid Cards OR Minimalist BitChord Tracklist without repetitive text) -->
+          <div id="episodeListContainer"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- ADD NEW ANIME MODAL                                                   -->
+  <!-- ===================================================================== -->
+  <div id="addAnimeModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="haze-modal w-full max-w-md rounded-3xl p-5 border border-white/15 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white">Add Custom Anime to Library</h3>
+        <button id="closeAddAnimeBtn" class="w-7 h-7 rounded-full bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-zinc-400 mb-1">Anime Title *</label>
+          <input id="addTitleInput" type="text" placeholder="e.g. Solo Leveling Season 2" class="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-sm text-white focus:outline-none focus:border-orange-500" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">Category</label>
+            <select id="addCategorySelect" class="w-full px-2.5 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs text-white focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">Initial Status</label>
+            <select id="addStatusSelect" class="w-full px-2.5 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs text-white focus:outline-none">
+              <option value="Watching">Watching</option>
+              <option value="Plan">Plan to Watch</option>
+              <option value="Completed">Completed</option>
+              <option value="Unwatched">Unwatched</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">First Season Name</label>
+            <input id="addSeasonInput" type="text" value="Season 1" class="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-xs text-white focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-zinc-400 mb-1">Total Episodes</label>
+            <input id="addEpCountInput" type="number" value="12" min="1" max="1000" class="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-xs text-white focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] text-zinc-400 mb-1">Official Poster (Upload Image or Leave Blank for Auto-Fetch)</label>
+          <input id="addPosterFileInput" type="file" accept="image/*" class="w-full text-xs text-zinc-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
+        </div>
+
+        <label class="flex items-center gap-2 pt-1 cursor-pointer">
+          <input id="addWeeklyCheck" type="checkbox" class="rounded bg-black border-white/20 text-orange-500 focus:ring-0" />
+          <span class="text-xs text-zinc-300">Add to Weekly Anime Schedule</span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button id="cancelAddAnimeBtn" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-zinc-300">Cancel</button>
+        <button id="saveNewAnimeBtn" class="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-xs font-bold text-black shadow-lg shadow-orange-500/20">Add Anime</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBox" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-full haze-bar text-xs font-semibold text-white shadow-2xl border border-white/15"></div>
+
+  <script>
+    /*************************************************************************
+     * 1. COMPLETE 251 CURATED DUBBED ANIME CATALOG (All 13 User Categories) *
+     *************************************************************************/
+    const RAW_CATALOG = [
+      {
+        id: "action",
+        name: "⚔️ Action / Adventure",
+        short: "Action",
+        color: ["#7c2d12", "#ea580c"],
+        titles: [
+          "Naruto", "Naruto Shippuden", "One Piece – Egghead Arc", "Bleach",
+          "Bleach: Thousand-Year Blood War", "Dragon Ball Super", "Dragon Ball Daima",
+          "Demon Slayer", "Jujutsu Kaisen", "Chainsaw Man", "My Hero Academia",
+          "Solo Leveling", "Kaiju No. 8", "Wind Breaker", "Viral Hit", "Gachiakuta",
+          "Rurouni Kenshin", "Vinland Saga", "The God of High School",
+          "Mashle: Magic and Muscles", "Zom 100: Bucket List of the Dead",
+          "Akudama Drive", "Shangri-La Frontier", "BUCCHIGIRI?!", "Clevatess",
+          "Trigun Stargaze", "Code Geass", "Black Butler", "The Elusive Samurai",
+          "Gintama", "Ragna Crimson", "Dandadan", "Assassination Classroom",
+          "One-Punch Man", "Hunter × Hunter (2011)"
+        ]
+      },
+      {
+        id: "hindi",
+        name: "🇮🇳 Latest Hindi Dub Releases",
+        short: "Hindi Dub",
+        color: ["#14532d", "#f97316"],
+        titles: [
+          "Black Clover", "Fullmetal Alchemist: Brotherhood", "Overgeared",
+          "A Wild Last Boss Appeared!", "Firefly Wedding", "The Apothecary Diaries",
+          "The Detective Is Already Dead", "Re:ZERO Season 4 Cour 2",
+          "KonoSuba: An Explosion on This Wonderful World!",
+          "Even Though I'm a Super Timid Noble Girl", "Psyren",
+          "The Iceblade Sorcerer Shall Rule the World II"
+        ]
+      },
+      {
+        id: "fantasy",
+        name: "🌀 Fantasy / Isekai",
+        short: "Isekai",
+        color: ["#3b0764", "#7c3aed"],
+        titles: [
+          "That Time I Got Reincarnated as a Slime", "Re:Zero", "Mushoku Tensei",
+          "The Rising of the Shield Hero", "Tsukimichi: Moonlit Fantasy", "Overlord",
+          "KonoSuba", "The Eminence in Shadow", "Arifureta",
+          "The Beginning After the End",
+          "The Reincarnation of the Strongest Exorcist in Another World",
+          "The Weakest Tamer Began a Journey to Pick Up Trash",
+          "Villainess Level 99", "I Was Reincarnated as the 7th Prince",
+          "The Strongest Magician in the Demon Lord's Army Was a Human",
+          "No Longer Allowed in Another World",
+          "The Red Ranger Becomes an Adventurer in Another World",
+          "Handyman Saitou in Another World",
+          "She Professed Herself Pupil of the Wise Man",
+          "Trapped in a Dating Sim", "Reborn as a Vending Machine",
+          "The Great Cleric", "I Got a Cheat Skill in Another World",
+          "I Shall Survive Using Potions!", "The Strongest Tank's Labyrinth Raids",
+          "Gods' Games We Play", "Quality Assurance in Another World",
+          "Bye Bye, Earth", "Berserk of Gluttony",
+          "Possibly the Greatest Alchemist of All Time", "Magic Maker",
+          "Teogonia", "New Saga", "A Gatherer's Adventure in Isekai",
+          "Easygoing Territory Defense by the Optimistic Lord",
+          "Sentenced to Be a Hero", "Kunon the Sorcerer Can See",
+          "The Laid-Off Cheat-Granting Mage Enjoys a Second Lease on Life",
+          "The Unaware Atelier Meister",
+          "The Warrior Princess and the Barbaric King",
+          "The Gorilla God's Go-To Girl",
+          "An Adventurer's Daily Grind at Age 29",
+          "The Exiled Heavy Knight Knows How to Game the System"
+        ]
+      },
+      {
+        id: "donghua",
+        name: "🇨🇳 Donghua",
+        short: "Donghua",
+        color: ["#7f1d1d", "#dc2626"],
+        titles: [
+          "The Daily Life of the Immortal King", "Release That Witch",
+          "Heaven Official's Blessing", "A Mortal's Journey", "Cinderella Chef"
+        ]
+      },
+      {
+        id: "romance",
+        name: "❤️ Romance / Drama",
+        short: "Romance",
+        color: ["#831843", "#ec4899"],
+        titles: [
+          "My Dress-Up Darling", "Horimiya", "A Couple of Cuckoos",
+          "Masamune-kun's Revenge", "Rent-a-Girlfriend", "Tomo-chan Is a Girl!",
+          "The Angel Next Door Spoils Me Rotten",
+          "My Love Story with Yamada-kun at Lv999",
+          "More than a Married Couple, but Not Lovers",
+          "I'm in Love with the Villainess", "Hokkaido Gals Are Super Adorable!",
+          "Alya Sometimes Hides Her Feelings in Russian",
+          "A Condition Called Love", "Days with My Stepsister",
+          "Twilight Out of Focus", "Vampire Dormitory", "Nina the Starry Bride",
+          "Tying the Knot with an Amagami Sister", "365 Days to the Wedding",
+          "You Are Ms. Servant",
+          "I'm Getting Married to a Girl I Hate in My Class",
+          "The Shiunji Family Children",
+          "With You, Our Love Will Make It Through", "Hana-Kimi",
+          "You and I Are Polar Opposites",
+          "The Many Sides of Voice Actor Radio", "My Clueless First Friend",
+          "An Observation Log of My Fiancée Who Calls Herself a Villainess",
+          "The Maid I Hired Recently Is Mysterious", "My Tiny Senpai",
+          "The Ice Guy and His Cool Female Colleague"
+        ]
+      },
+      {
+        id: "mystery",
+        name: "🕵️ Mystery / Thriller",
+        short: "Mystery",
+        color: ["#0f172a", "#38bdf8"],
+        titles: [
+          "Liar Game", "Ameku M.D.: Doctor Detective", "Tokyo 24th Ward",
+          "The Case Study of Vanitas", "Toilet-bound Hanako-kun",
+          "The Promised Neverland", "Summer Time Rendering", "Monster",
+          "Erased", "Steins;Gate", "Psycho-Pass", "The Summer Hikaru Died",
+          "The Grimm Variations", "The Culprit Hanzawa",
+          "Detective Conan: Zero's Tea Time", "Dark Moon: The Blood Altar",
+          "Another", "Terror in Resonance", "Akuma Kun"
+        ]
+      },
+      {
+        id: "sports",
+        name: "🏐 Sports",
+        short: "Sports",
+        color: ["#064e3b", "#10b981"],
+        titles: [
+          "Haikyu!!", "Blue Lock", "SK8 the Infinity", "Kuroko's Basketball",
+          "Shoot! Goal to the Future", "Catch Me at the Ballpark!",
+          "Yuri on Ice", "Initial D", "Captain Tsubasa",
+          "The Prince of Tennis", "Idaten Jump", "Beyblade"
+        ]
+      },
+      {
+        id: "comedy",
+        name: "😂 Comedy / Slice of Life",
+        short: "Comedy",
+        color: ["#713f12", "#eab308"],
+        titles: [
+          "Spy × Family", "ReLIFE", "Buddy Daddies", "Akebi's Sailor Uniform",
+          "Miss Kuroitsu from the Monster Development Department",
+          "After School Dice Club", "Heroines Run the Show", "Let's Play",
+          "If My Favorite Pop Idol Made It to the Budokan, I Would Die",
+          "Bartender: Glass of God", "A Salad Bowl of Eccentrics",
+          "The Way of the Househusband", "Pokémon Concierge",
+          "Scott Pilgrim Takes Off"
+        ]
+      },
+      {
+        id: "scifi",
+        name: "🤖 Sci-Fi / Mecha",
+        short: "Sci-Fi",
+        color: ["#1e1b4b", "#06b6d4"],
+        titles: [
+          "Darling in the Franxx",
+          "Mobile Suit Gundam: The Witch from Mercury", "Robotics;Notes",
+          "Metallic Rouge", "Ghost in the Shell: SAC_2045", "Onimusha",
+          "Trillion Game", "Tojima Wants to Be a Kamen Rider",
+          "Girls' Frontline", "Pluto", "Cyberpunk: Edgerunners",
+          "86 Eighty-Six", "Dorohedoro"
+        ]
+      },
+      {
+        id: "horror",
+        name: "👻 Horror / Supernatural",
+        short: "Horror",
+        color: ["#450a0a", "#ef4444"],
+        titles: [
+          "Baki", "Baki Hanma", "Castlevania: Nocturne", "Castlevania",
+          "Garouden: The Way of the Lone Wolf", "Zom 100"
+        ]
+      },
+      {
+        id: "movies",
+        name: "🎬 Anime Movies",
+        short: "Movies",
+        color: ["#172554", "#6366f1"],
+        titles: [
+          "Your Name", "Weathering with You", "Suzume", "My Oni Girl",
+          "The Imaginary", "The Tunnel to Summer, the Exit of Goodbyes",
+          "Lost in Starlight", "A Silent Voice", "The Garden of Words",
+          "5 Centimeters per Second", "My Neighbor Totoro",
+          "Kiki's Delivery Service", "Spirited Away", "Princess Mononoke",
+          "Howl's Moving Castle", "Ponyo", "Earwig and the Witch",
+          "Demon Slayer: Mugen Train", "Demon Slayer: Infinity Castle",
+          "Chainsaw Man – The Movie: Reze Arc",
+          "Dragon Ball Super: Super Hero",
+          "Black Clover: Sword of the Wizard King",
+          "Baki Hanma VS Kengan Ashura",
+          "Pokémon: Mewtwo Strikes Back – Evolution",
+          "Pokémon: Secrets of the Jungle", "Ultraman: Rising",
+          "Stand by Me Doraemon", "Stand by Me Doraemon 2",
+          "Mononoke the Movie: Phantom in the Rain",
+          "Mononoke the Movie: Chapter II – The Ashes of Rage",
+          "Mononoke: Chapter III – The Curse of the Serpent", "Scarlet",
+          "Mobile Suit Gundam Hathaway: The Sorcery of Nymph Circe",
+          "Iron Man: Rise of Technovore", "Final Fantasy: The Spirits Within",
+          "Altered Carbon: Resleeved",
+          "Ghost in the Shell: SAC_2045 – Sustainable War",
+          "The Boy and the Heron",
+          "Milky☆Subway: The Galactic Limited Express – The Movie",
+          "The Ribbon Hero"
+        ]
+      },
+      {
+        id: "classic",
+        name: "📺 Classic TV Anime",
+        short: "Classics",
+        color: ["#431407", "#f59e0b"],
+        titles: [
+          "Pokémon", "Doraemon", "Crayon Shin-chan", "Ninja Hattori",
+          "Perman", "Kiteretsu", "Beyblade Metal Fusion",
+          "Beyblade Metal Masters", "Digimon Adventure", "Yu-Gi-Oh!",
+          "Hagemaru", "Astro Boy", "The Jungle Book: Shōnen Mowgli",
+          "Chibi Maruko-chan"
+        ]
+      },
+      {
+        id: "ova",
+        name: "⭐ OVA / Specials",
+        short: "OVA",
+        color: ["#312e81", "#a855f7"],
+        titles: [
+          "Ranking of Kings: Treasure Chest of Courage", "Dr. Stone: Ryusui",
+          "My Hero Academia: Memories", "Haikyu!! OVA",
+          "Kaiju No. 8: Narumi's Week at Work",
+          "The Ancient Magus' Bride: Those Awaiting a Star",
+          "Lord of Mysteries Specials"
+        ]
+      }
+    ];
+
+    /*************************************************************************
+     * 2. VERIFIED MYANIMELIST CDN OFFICIAL POSTER MAP FOR POPULAR TITLES    *
+     *    + AUTOMATIC JIKAN API DISCOVERY & HIGH-CRAFT SVG FALLBACK          *
+     *************************************************************************/
+    const KNOWN_POSTERS = {
+      "Naruto": "https://cdn.myanimelist.net/images/anime/13/17405l.jpg",
+      "Naruto Shippuden": "https://cdn.myanimelist.net/images/anime/1565/111305l.jpg",
+      "One Piece – Egghead Arc": "https://cdn.myanimelist.net/images/anime/1244/138851l.jpg",
+      "Bleach": "https://cdn.myanimelist.net/images/anime/3/40451l.jpg",
+      "Bleach: Thousand-Year Blood War": "https://cdn.myanimelist.net/images/anime/1908/135431l.jpg",
+      "Dragon Ball Super": "https://cdn.myanimelist.net/images/anime/7/74606l.jpg",
+      "Dragon Ball Daima": "https://cdn.myanimelist.net/images/anime/1798/145308l.jpg",
+      "Demon Slayer": "https://cdn.myanimelist.net/images/anime/1286/99889l.jpg",
+      "Jujutsu Kaisen": "https://cdn.myanimelist.net/images/anime/1171/109222l.jpg",
+      "Chainsaw Man": "https://cdn.myanimelist.net/images/anime/1806/126216l.jpg",
+      "My Hero Academia": "https://cdn.myanimelist.net/images/anime/10/78745l.jpg",
+      "Solo Leveling": "https://cdn.myanimelist.net/images/anime/1801/142390l.jpg",
+      "Kaiju No. 8": "https://cdn.myanimelist.net/images/anime/1370/140362l.jpg",
+      "Wind Breaker": "https://cdn.myanimelist.net/images/anime/1438/141816l.jpg",
+      "Vinland Saga": "https://cdn.myanimelist.net/images/anime/1500/103005l.jpg",
+      "Mashle: Magic and Muscles": "https://cdn.myanimelist.net/images/anime/1218/135107l.jpg",
+      "Code Geass": "https://cdn.myanimelist.net/images/anime/1032/135088l.jpg",
+      "Dandadan": "https://cdn.myanimelist.net/images/anime/1584/143719l.jpg",
+      "One-Punch Man": "https://cdn.myanimelist.net/images/anime/12/76049l.jpg",
+      "Hunter × Hunter (2011)": "https://cdn.myanimelist.net/images/anime/1337/99013l.jpg",
+      "Black Clover": "https://cdn.myanimelist.net/images/anime/2/88336l.jpg",
+      "Fullmetal Alchemist: Brotherhood": "https://cdn.myanimelist.net/images/anime/1208/94745l.jpg",
+      "The Apothecary Diaries": "https://cdn.myanimelist.net/images/anime/1708/138033l.jpg",
+      "That Time I Got Reincarnated as a Slime": "https://cdn.myanimelist.net/images/anime/1694/93337l.jpg",
+      "Re:Zero": "https://cdn.myanimelist.net/images/anime/1522/128039l.jpg",
+      "Mushoku Tensei": "https://cdn.myanimelist.net/images/anime/1530/117776l.jpg",
+      "The Eminence in Shadow": "https://cdn.myanimelist.net/images/anime/1874/126269l.jpg",
+      "My Dress-Up Darling": "https://cdn.myanimelist.net/images/anime/1179/119897l.jpg",
+      "Horimiya": "https://cdn.myanimelist.net/images/anime/1695/111486l.jpg",
+      "Steins;Gate": "https://cdn.myanimelist.net/images/anime/1935/127974l.jpg",
+      "Monster": "https://cdn.myanimelist.net/images/anime/10/18793l.jpg",
+      "Another": "https://cdn.myanimelist.net/images/anime/4/75509l.jpg",
+      "Haikyu!!": "https://cdn.myanimelist.net/images/anime/7/76014l.jpg",
+      "Blue Lock": "https://cdn.myanimelist.net/images/anime/1258/126929l.jpg",
+      "Spy × Family": "https://cdn.myanimelist.net/images/anime/1441/122795l.jpg",
+      "Cyberpunk: Edgerunners": "https://cdn.myanimelist.net/images/anime/1818/126435l.jpg",
+      "86 Eighty-Six": "https://cdn.myanimelist.net/images/anime/1987/117507l.jpg",
+      "Your Name": "https://cdn.myanimelist.net/images/anime/5/87048l.jpg",
+      "Suzume": "https://cdn.myanimelist.net/images/anime/1598/128450l.jpg",
+      "Spirited Away": "https://cdn.myanimelist.net/images/anime/6/79597l.jpg"
+    };
+
+    // High-craft procedural SVG poster fallback when offline or before online artwork is found
+    function createFallbackPosterSvg(title, colors, categoryShort) {
+      const c1 = (colors && colors[0]) || "#1e1b4b";
+      const c2 = (colors && colors[1]) || "#ea580c";
+      const safeTitle = title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const words = safeTitle.split(" ");
+      const lines = [];
+      let cur = "";
+      for (const w of words) {
+        if ((cur + " " + w).trim().length > 16 && lines.length < 3) {
+          lines.push(cur.trim());
+          cur = w;
+        } else {
+          cur = (cur + " " + w).trim();
+        }
+      }
+      if (cur) lines.push(cur.slice(0, 22));
+
+      const textElements = lines.slice(0, 4).map((line, idx) =>
+        `<text x="28" y="${395 + idx * 34}" fill="#ffffff" font-family="Inter, sans-serif" font-weight="800" font-size="26" letter-spacing="-0.5">${line}</text>`
+      ).join("");
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="${c1}"/>
+            <stop offset="55%" stop-color="#09090d"/>
+            <stop offset="100%" stop-color="${c2}"/>
+          </linearGradient>
+        </defs>
+        <rect width="400" height="600" fill="url(#g)"/>
+        <circle cx="320" cy="110" r="140" fill="${c2}" opacity="0.22"/>
+        <circle cx="70" cy="480" r="170" fill="${c1}" opacity="0.35"/>
+        <rect x="28" y="32" width="110" height="28" rx="14" fill="rgba(255,255,255,0.12)"/>
+        <text x="83" y="51" text-anchor="middle" fill="#fb923c" font-family="Inter, sans-serif" font-weight="700" font-size="12" letter-spacing="1">${(categoryShort || "ANIME").toUpperCase()}</text>
+        ${textElements}
+        <rect x="28" y="545" width="64" height="4" rx="2" fill="#f47521"/>
+      </svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    /*************************************************************************
+     * 3. INDEXEDDB OFFLINE VIDEO VAULT (Gallery-Independent Blob Storage)   *
+     *************************************************************************/
+    const DB_NAME = "BitAnimeOfflineVaultDB";
+    const DB_VERSION = 1;
+    let dbInstance = null;
+
+    function openVaultDB() {
+      return new Promise((resolve, reject) => {
+        if (dbInstance) return resolve(dbInstance);
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains("episodeVideos")) {
+            db.createObjectStore("episodeVideos", { keyPath: "key" });
+          }
+        };
+        req.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          resolve(dbInstance);
+        };
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function saveEpisodeVideoToVault(key, file) {
+      const db = await openVaultDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("episodeVideos", "readwrite");
+        const store = tx.objectStore("episodeVideos");
+        const record = {
+          key,
+          blob: file,
+          fileName: file.name || "episode.mp4",
+          mimeType: file.type || "video/mp4",
+          size: file.size || 0,
+          savedAt: Date.now()
+        };
+        store.put(record);
+        tx.oncomplete = () => resolve(record);
+        tx.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function getEpisodeVideoFromVault(key) {
+      const db = await openVaultDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("episodeVideos", "readonly");
+        const store = tx.objectStore("episodeVideos");
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function deleteEpisodeVideoFromVault(key) {
+      const db = await openVaultDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("episodeVideos", "readwrite");
+        const store = tx.objectStore("episodeVideos");
+        store.delete(key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function getAllVaultKeysAndStats() {
+      try {
+        const db = await openVaultDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction("episodeVideos", "readonly");
+          const store = tx.objectStore("episodeVideos");
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const list = req.result || [];
+            const keys = new Set();
+            let totalBytes = 0;
+            for (const item of list) {
+              keys.add(item.key);
+              totalBytes += (item.size || 0);
+            }
+            resolve({ keys, count: list.length, totalBytes });
+          };
+          req.onerror = () => resolve({ keys: new Set(), count: 0, totalBytes: 0 });
+        });
+      } catch (_) {
+        return { keys: new Set(), count: 0, totalBytes: 0 };
+      }
+    }
+
+    /*************************************************************************
+     * 4. STATE INITIALIZATION & PERSISTENCE                                 *
+     *************************************************************************/
+    const STORAGE_KEY = "bitanime_vault_state_v1";
+    const POSTER_CACHE_KEY = "bitanime_poster_cache_anilist_v2";
+    const POSTER_MISS_CACHE_KEY = "bitanime_poster_miss_anilist_v1";
+
+    let posterCache = {};
+    try {
+      const rawCache = localStorage.getItem(POSTER_CACHE_KEY);
+      if (rawCache) posterCache = JSON.parse(rawCache);
+    } catch (_) {}
+
+    let posterMissCache = {};
+    try {
+      const rawMissCache = localStorage.getItem(POSTER_MISS_CACHE_KEY);
+      if (rawMissCache) posterMissCache = JSON.parse(rawMissCache);
+    } catch (_) {}
+
+    function savePosterCache() {
+      try {
+        localStorage.setItem(POSTER_CACHE_KEY, JSON.stringify(posterCache));
+      } catch (_) {}
+    }
+
+    function savePosterMissCache() {
+      try {
+        localStorage.setItem(POSTER_MISS_CACHE_KEY, JSON.stringify(posterMissCache));
+      } catch (_) {}
+    }
+
+    function buildDefaultCatalogState() {
+      const items = [];
+      let indexCounter = 1;
+      const defaultWatching = new Set(["Solo Leveling", "One Piece – Egghead Arc", "Dandadan", "Jujutsu Kaisen"]);
+      const defaultWeekly = {
+        "One Piece – Egghead Arc": "Sunday",
+        "Solo Leveling": "Saturday",
+        "Dandadan": "Thursday",
+        "Dragon Ball Daima": "Friday",
+        "Bleach: Thousand-Year Blood War": "Saturday",
+        "Shangri-La Frontier": "Sunday"
+      };
+
+      for (const cat of RAW_CATALOG) {
+        for (const title of cat.titles) {
+          const id = "anime_" + indexCounter++;
+          const isMovie = cat.id === "movies";
+          const defaultEpCount = isMovie ? 1 : 12;
+          const isWatching = defaultWatching.has(title);
+          const weeklyDay = defaultWeekly[title] || null;
+
+          items.push({
+            id,
+            title,
+            categoryId: cat.id,
+            categoryName: cat.name,
+            categoryShort: cat.short,
+            colors: cat.color,
+            status: isWatching ? "Watching" : "Unwatched",
+            weekly: Boolean(weeklyDay),
+            weeklyDay: weeklyDay || "Saturday",
+            customPoster: null,
+            activeSeasonIndex: 0,
+            seasons: [
+              {
+                name: isMovie ? "Full Movie" : "Season 1",
+                episodeCount: defaultEpCount,
+                watchedEpisodes: isWatching ? [1, 2] : []
+              }
+            ]
+          });
+        }
+      }
+      return items;
+    }
+
+    let animeList = [];
+    function loadAppState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            animeList = parsed;
+            return;
+          }
+        }
+      } catch (_) {}
+      animeList = buildDefaultCatalogState();
+      saveAppState();
+    }
+
+    function saveAppState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(animeList));
+      } catch (_) {}
+    }
+
+    // UI Filter State
+    let activeNav = "HOME"; // HOME | WEEKLY | VAULT
+    let activeCategory = "ALL";
+    let activeStatusFilter = "ALL";
+    let activeWeeklyDay = "ALL";
+    let searchQuery = "";
+    let currentDetailAnimeId = null;
+    let activeVideoObjectUrl = null;
+    let currentPlayingVaultRecord = null;
+    let vaultEpisodeKeys = new Set();
+    let vaultStats = { count: 0, totalBytes: 0 };
+
+    /*************************************************************************
+     * 5. HELPER FUNCTIONS                                                   *
+     *************************************************************************/
+    function showToast(msg) {
+      const box = document.getElementById("toastBox");
+      box.textContent = msg;
+      box.classList.remove("hidden");
+      clearTimeout(box._timer);
+      box._timer = setTimeout(() => box.classList.add("hidden"), 2600);
+    }
+
+    function getPosterUrl(anime) {
+      if (anime.customPoster) return anime.customPoster;
+      if (posterCache[anime.title]) return posterCache[anime.title];
+      if (KNOWN_POSTERS[anime.title]) return KNOWN_POSTERS[anime.title];
+      return createFallbackPosterSvg(anime.title, anime.colors, anime.categoryShort);
+    }
+
+    function setAmbientColors(colors) {
+      if (!colors || colors.length < 2) return;
+      document.documentElement.style.setProperty("--ambient-1", colors[0]);
+      document.documentElement.style.setProperty("--ambient-2", colors[1]);
+    }
+
+    function animeHasOfflineVideo(anime) {
+      for (let sIdx = 0; sIdx < anime.seasons.length; sIdx++) {
+        const epCount = anime.seasons[sIdx].episodeCount;
+        for (let ep = 1; ep <= epCount; ep++) {
+          if (vaultEpisodeKeys.has(`${anime.id}_s${sIdx}_ep${ep}`)) return true;
+        }
+      }
+      return false;
+    }
+
+    function getAnimeWatchedSummary(anime) {
+      const season = anime.seasons[anime.activeSeasonIndex] || anime.seasons[0];
+      const watched = (season && season.watchedEpisodes) ? season.watchedEpisodes.length : 0;
+      const total = (season && season.episodeCount) ? season.episodeCount : 12;
+      return { seasonName: season ? season.name : "S1", watched, total };
+    }
+
+    /*************************************************************************
+     * 6. RENDER CATEGORY STRIP, HERO SPOTLIGHT, WEEKLY & MAIN GRID          *
+     *************************************************************************/
+    function renderCategoryStrip() {
+      const strip = document.getElementById("categoryStrip");
+      const totalCount = animeList.length;
+      let html = `<button data-cat="ALL" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+        activeCategory === "ALL" ? "bg-white text-black shadow" : "haze-card text-zinc-300 hover:text-white"
+      }">All (${totalCount})</button>`;
+
+      for (const cat of RAW_CATALOG) {
+        const count = animeList.filter(a => a.categoryId === cat.id).length;
+        const isActive = activeCategory === cat.id;
+        html += `<button data-cat="${cat.id}" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+          isActive ? "bg-white text-black shadow" : "haze-card text-zinc-300 hover:text-white"
+        }">${cat.name} <span class="opacity-60 ml-0.5">${count}</span></button>`;
+      }
+      strip.innerHTML = html;
+
+      strip.querySelectorAll(".cat-pill").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeCategory = btn.getAttribute("data-cat");
+          const catObj = RAW_CATALOG.find(c => c.id === activeCategory);
+          if (catObj) setAmbientColors(catObj.color);
+          renderAll();
+        });
+      });
+    }
+
+    function renderHeroSpotlight() {
+      const hero = document.getElementById("heroSpotlight");
+      if (activeNav !== "HOME" || searchQuery.trim() !== "") {
+        hero.classList.add("hidden");
+        return;
+      }
+      hero.classList.remove("hidden");
+
+      const watchingList = animeList.filter(a => a.status === "Watching");
+      const featured = watchingList[0] || animeList[11] || animeList[0]; // Default Solo Leveling
+      if (!featured) {
+        hero.innerHTML = "";
+        return;
+      }
+
+      const summary = getAnimeWatchedSummary(featured);
+      const pct = Math.min(100, Math.round((summary.watched / Math.max(1, summary.total)) * 100));
+
+      hero.innerHTML = `
+        <div class="hero-feature-card">
+          <div class="hero-feature-glow" style="--hero-color-a:${featured.colors[0]};--hero-color-b:${featured.colors[1]};"></div>
+          <div class="hero-feature-inner">
+            <div class="hero-feature-main">
+              <img src="${getPosterUrl(featured)}" alt="${featured.title}" data-poster-title="${featured.title.replace(/"/g, '&quot;')}" class="hero-feature-poster" id="heroPosterClick" loading="lazy" decoding="async" />
+              <div class="hero-feature-copy">
+                <div class="hero-feature-label-row">
+                  <span class="hero-feature-label"><span class="hero-live-dot"></span> CONTINUE WATCHING</span>
+                  <span class="hero-feature-category">${featured.categoryName}</span>
+                </div>
+                <h2 class="hero-feature-title">${featured.title}</h2>
+                <p class="hero-feature-subtitle">${summary.seasonName} <span>·</span> ${summary.watched} of ${summary.total} episodes watched</p>
+                <div class="hero-progress-meta"><span>YOUR PROGRESS</span><strong>${pct}%</strong></div>
+                <div class="hero-progress-track"><div class="hero-progress-fill" style="width:${pct}%"></div></div>
+              </div>
+            </div>
+            <button id="heroOpenBtn" class="hero-feature-action">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <span>View Episodes</span>
+              <span class="hero-action-arrow">↗</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("heroOpenBtn").addEventListener("click", () => openAnimeDetail(featured.id));
+      document.getElementById("heroPosterClick").addEventListener("click", () => openAnimeDetail(featured.id));
+    }
+
+    function createAnimeCardHtml(anime) {
+      const poster = getPosterUrl(anime);
+      const summary = getAnimeWatchedSummary(anime);
+      const hasOffline = animeHasOfflineVideo(anime);
+
+      const statusBadgeColors = {
+        "Watching": "bg-orange-500 text-black font-bold",
+        "Completed": "bg-emerald-500/25 text-emerald-300 border border-emerald-500/30",
+        "Plan": "bg-sky-500/20 text-sky-300 border border-sky-500/30",
+        "Unwatched": "bg-white/[0.07] text-zinc-400"
+      };
+      const badgeClass = statusBadgeColors[anime.status] || statusBadgeColors["Unwatched"];
+
+      return `
+        <div class="poster-card flex flex-col group" data-anime-id="${anime.id}">
+          <!-- Poster Image Container -->
+          <div class="poster-wrap cursor-pointer" data-open-id="${anime.id}">
+            <img
+              src="${poster}"
+              alt="${anime.title}"
+              loading="lazy"
+              decoding="async"
+              referrerpolicy="no-referrer"
+              data-poster-title="${anime.title.replace(/"/g, '&quot;')}"
+              class="w-full h-full object-cover transition duration-500"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent"></div>
+
+            <!-- Top-left Offline Vault Indicator -->
+            ${hasOffline ? `
+              <div class="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-emerald-500 text-black text-[9px] font-extrabold uppercase tracking-wider shadow">
+                Offline
+              </div>
+            ` : ""}
+
+            <!-- Top-right Quick Weekly Toggle Button -->
+            <button
+              data-weekly-toggle="${anime.id}"
+              title="${anime.weekly ? 'Pinned to Weekly (' + anime.weeklyDay + ')' : 'Add to Weekly List'}"
+              class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs transition backdrop-blur-md ${
+                anime.weekly
+                  ? "bg-orange-500 text-black font-bold shadow-lg"
+                  : "bg-black/55 text-zinc-300 hover:bg-black/80 border border-white/15"
+              }"
+            >
+              ${anime.weekly ? "★" : "+"}
+            </button>
+
+            <!-- Bottom overlay inside Poster: Season & Watched counter -->
+            <div class="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[10px] font-semibold text-zinc-200">
+              <span class="truncate">${summary.seasonName}</span>
+              <span class="px-1.5 py-0.5 rounded bg-black/65 border border-white/10">${summary.watched}/${summary.total} EP</span>
+            </div>
+          </div>
+
+          <!-- Title + Below-Poster Status & Weekly Controls -->
+          <div class="mt-2 px-0.5 flex flex-col gap-1">
+            <h3 class="text-xs font-semibold text-zinc-100 leading-snug line-clamp-1 cursor-pointer hover:text-orange-400 transition" data-open-id="${anime.id}">
+              ${anime.title}
+            </h3>
+            <div class="flex items-center justify-between gap-1">
+              <button
+                data-cycle-status="${anime.id}"
+                title="Tap to cycle status (Watching → Completed → Plan → Unwatched)"
+                class="text-[10px] px-2 py-0.5 rounded-md transition truncate ${badgeClass}"
+              >
+                ${anime.status}
+              </button>
+              ${anime.weekly ? `<span class="text-[10px] text-orange-400 font-medium shrink-0">${anime.weeklyDay.slice(0,3)}</span>` : `<span class="text-[10px] text-zinc-500 shrink-0">${anime.categoryShort}</span>`}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWeeklySection() {
+      const weeklySec = document.getElementById("weeklySection");
+      const weeklyBadge = document.getElementById("weeklyNavBadge");
+      const pinned = animeList.filter(a => a.weekly);
+      weeklyBadge.textContent = pinned.length;
+
+      if (activeNav !== "WEEKLY") {
+        weeklySec.classList.add("hidden");
+        return;
+      }
+      weeklySec.classList.remove("hidden");
+
+      const days = ["ALL", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const dayStrip = document.getElementById("weeklyDayFilter");
+      dayStrip.innerHTML = days.map(d => `
+        <button data-day="${d}" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
+          activeWeeklyDay === d ? "bg-orange-500 text-black" : "bg-white/5 text-zinc-400 hover:text-white"
+        }">${d === "ALL" ? "All Days (" + pinned.length + ")" : d.slice(0, 3)}</button>
+      `).join("");
+
+      dayStrip.querySelectorAll("button").forEach(b => {
+        b.addEventListener("click", () => {
+          activeWeeklyDay = b.getAttribute("data-day");
+          renderWeeklySection();
+        });
+      });
+
+      const filteredWeekly = activeWeeklyDay === "ALL"
+        ? pinned
+        : pinned.filter(a => a.weeklyDay === activeWeeklyDay);
+
+      const grid = document.getElementById("weeklyGrid");
+      if (filteredWeekly.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-zinc-400">No anime pinned for this day yet. Tap the <span class="text-white font-bold">+</span> icon on any poster below to add it to your weekly list.</div>`;
+      } else {
+        grid.innerHTML = filteredWeekly.map(createAnimeCardHtml).join("");
+        bindCardEvents(grid);
+      }
+    }
+
+    function renderMainGrid() {
+      const vaultSec = document.getElementById("vaultSection");
+      const vaultBadge = document.getElementById("vaultNavBadge");
+      vaultBadge.textContent = vaultStats.count;
+
+      if (activeNav === "VAULT") {
+        vaultSec.classList.remove("hidden");
+        document.getElementById("vaultStatsCount").textContent = `${vaultStats.count} Episode${vaultStats.count === 1 ? "" : "s"} Saved`;
+        const mb = (vaultStats.totalBytes / (1024 * 1024)).toFixed(1);
+        document.getElementById("vaultStatsSize").textContent = `${mb} MB stored inside app`;
+      } else {
+        vaultSec.classList.add("hidden");
+      }
+
+      const q = searchQuery.trim().toLowerCase();
+      const filtered = animeList.filter(anime => {
+        if (activeNav === "VAULT" && !animeHasOfflineVideo(anime)) return false;
+        if (activeCategory !== "ALL" && anime.categoryId !== activeCategory) return false;
+        if (activeStatusFilter === "HAS_VIDEO" && !animeHasOfflineVideo(anime)) return false;
+        if (activeStatusFilter !== "ALL" && activeStatusFilter !== "HAS_VIDEO" && anime.status !== activeStatusFilter) return false;
+        if (q && !anime.title.toLowerCase().includes(q) && !anime.categoryName.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      document.getElementById("visibleCountBadge").textContent = `Showing ${filtered.length} of ${animeList.length} titles`;
+      document.getElementById("catalogSubtitle").textContent = `${animeList.length} Curated Dubs • ${vaultStats.count} Offline Videos`;
+
+      const grid = document.getElementById("animeGrid");
+      const empty = document.getElementById("emptyState");
+
+      if (filtered.length === 0) {
+        grid.innerHTML = "";
+        empty.classList.remove("hidden");
+      } else {
+        empty.classList.add("hidden");
+        grid.innerHTML = filtered.map(createAnimeCardHtml).join("");
+        bindCardEvents(grid);
+      }
+    }
+
+    function bindCardEvents(container) {
+      container.querySelectorAll("[data-open-id]").forEach(el => {
+        el.addEventListener("click", () => {
+          openAnimeDetail(el.getAttribute("data-open-id"));
+        });
+      });
+
+      container.querySelectorAll("[data-weekly-toggle]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute("data-weekly-toggle");
+          const anime = animeList.find(a => a.id === id);
+          if (!anime) return;
+          anime.weekly = !anime.weekly;
+          saveAppState();
+          showToast(anime.weekly ? `Added "${anime.title}" to Weekly (${anime.weeklyDay})` : `Removed "${anime.title}" from Weekly`);
+          renderAll();
+        });
+      });
+
+      container.querySelectorAll("[data-cycle-status]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute("data-cycle-status");
+          const anime = animeList.find(a => a.id === id);
+          if (!anime) return;
+          const order = ["Unwatched", "Watching", "Completed", "Plan"];
+          const nextIdx = (order.indexOf(anime.status) + 1) % order.length;
+          anime.status = order[nextIdx];
+          saveAppState();
+          renderAll();
+        });
+      });
+    }
+
+    async function renderAll() {
+      const stats = await getAllVaultKeysAndStats();
+      vaultEpisodeKeys = stats.keys;
+      vaultStats = stats;
+
+      renderCategoryStrip();
+      renderHeroSpotlight();
+      renderWeeklySection();
+      renderMainGrid();
+      queueVisiblePosterFetches();
+    }
+
+    /*************************************************************************
+     * 7. ANIME DETAIL MODAL, SEASON EDITOR & EPISODE VAULT                  *
+     *************************************************************************/
+    function openAnimeDetail(animeId) {
+      const anime = animeList.find(a => a.id === animeId);
+      if (!anime) return;
+      currentDetailAnimeId = animeId;
+      setAmbientColors(anime.colors);
+
+      const modal = document.getElementById("detailModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      refreshDetailModalUI();
+    }
+
+    function closeAnimeDetail() {
+      stopInAppPlayer();
+      const modal = document.getElementById("detailModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      currentDetailAnimeId = null;
+      renderAll();
+    }
+
+    function refreshDetailModalUI() {
+      const anime = animeList.find(a => a.id === currentDetailAnimeId);
+      if (!anime) return;
+
+      document.getElementById("detailPosterImg").src = getPosterUrl(anime);
+      document.getElementById("detailCategoryBadge").textContent = anime.categoryName;
+      document.getElementById("detailTitle").textContent = anime.title;
+      document.getElementById("detailAmbientGlow").style.background =
+        `radial-gradient(circle at 20% 30%, ${anime.colors[1]}, ${anime.colors[0]} 60%, transparent 100%)`;
+
+      // Status buttons
+      document.querySelectorAll(".detail-status-btn").forEach(btn => {
+        const st = btn.getAttribute("data-set-status");
+        if (st === anime.status) {
+          btn.className = "detail-status-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-500 text-black border border-orange-400 transition";
+        } else {
+          btn.className = "detail-status-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 text-zinc-300 border border-white/10 hover:bg-white/10 transition";
+        }
+      });
+
+      // Weekly pin button & day selector
+      const wkBtn = document.getElementById("toggleWeeklyBtn");
+      wkBtn.innerHTML = anime.weekly
+        ? `<span class="text-orange-400">★</span> In Weekly List`
+        : `<span>+</span> Add to Weekly`;
+      wkBtn.className = anime.weekly
+        ? "px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40 flex items-center gap-1.5 transition"
+        : "px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/5 text-zinc-300 border border-white/10 flex items-center gap-1.5 transition";
+
+      const daySel = document.getElementById("weeklyDaySelect");
+      daySel.value = anime.weeklyDay || "Saturday";
+
+      // Season Tabs
+      if (anime.activeSeasonIndex >= anime.seasons.length) anime.activeSeasonIndex = 0;
+      const activeSeason = anime.seasons[anime.activeSeasonIndex];
+
+      const sTabs = document.getElementById("seasonTabs");
+      sTabs.innerHTML = anime.seasons.map((s, idx) => `
+        <button data-sidx="${idx}" class="px-3 py-1 rounded-lg text-xs font-bold transition ${
+          idx === anime.activeSeasonIndex
+            ? "bg-white text-black shadow"
+            : "bg-white/5 text-zinc-400 hover:text-white"
+        }">${s.name} <span class="opacity-65">(${s.episodeCount})</span></button>
+      `).join("");
+
+      sTabs.querySelectorAll("button").forEach(b => {
+        b.addEventListener("click", () => {
+          anime.activeSeasonIndex = parseInt(b.getAttribute("data-sidx"), 10);
+          saveAppState();
+          refreshDetailModalUI();
+        });
+      });
+
+      document.getElementById("currentSeasonNameInput").value = activeSeason.name;
+      document.getElementById("episodeCountInput").value = activeSeason.episodeCount;
+
+      const watchedSet = new Set(activeSeason.watchedEpisodes || []);
+      document.getElementById("seasonProgressLabel").textContent =
+        `${watchedSet.size} / ${activeSeason.episodeCount} Watched`;
+
+      // Render Episodes in Clean Grid Mode or Minimalist BitChord Tracklist Mode
+      const epContainer = document.getElementById("episodeListContainer");
+      const mode = window.episodeViewMode || "GRID"; // GRID (default clean tiles) | LIST (BitChord sleek divider list)
+      let epHtml = "";
+
+      if (mode === "GRID") {
+        epContainer.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5";
+        for (let ep = 1; ep <= activeSeason.episodeCount; ep++) {
+          const isWatched = watchedSet.has(ep);
+          const vaultKey = `${anime.id}_s${anime.activeSeasonIndex}_ep${ep}`;
+          const hasVideo = vaultEpisodeKeys.has(vaultKey);
+          const epStr = String(ep).padStart(2, "0");
+
+          epHtml += `
+            <div class="group relative rounded-2xl p-3 flex flex-col justify-between gap-2.5 transition border ${
+              hasVideo
+                ? "bg-gradient-to-br from-white/[0.07] to-white/[0.02] border-emerald-500/30 shadow-lg shadow-black/40"
+                : isWatched
+                  ? "bg-white/[0.025] border-white/[0.05] opacity-80 hover:opacity-100"
+                  : "bg-white/[0.04] hover:bg-white/[0.07] border-white/[0.07]"
+            }">
+              <!-- Top Row: Episode Number + Watched Check/Cross Pill -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-extrabold tracking-tight ${isWatched ? 'text-emerald-400' : 'text-white'}">EP ${epStr}</span>
+                  ${hasVideo ? `<span class="w-2 h-2 rounded-full bg-emerald-400 shadow shadow-emerald-400/50" title="Video Saved Offline in App"></span>` : ""}
+                </div>
+
+                <!-- Clean Check (✓) / Cross (✕) Toggle -->
+                <button
+                  data-toggle-ep="${ep}"
+                  title="${isWatched ? 'Watched ✓ (Tap for ✕)' : 'Unwatched ✕ (Tap for ✓)'}"
+                  class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition ${
+                    isWatched
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      : "bg-white/[0.06] text-zinc-500 hover:text-zinc-200 border border-white/10"
+                  }"
+                >
+                  ${isWatched ? "✓" : "✕"}
+                </button>
+              </div>
+
+              <!-- Bottom Row: Single Contextual Action (Play if saved, or subtle + Video) -->
+              <div class="flex items-center justify-between gap-1.5 pt-1 border-t border-white/[0.05]">
+                ${hasVideo ? `
+                  <button
+                    data-play-ep="${ep}"
+                    class="flex-1 py-1.5 px-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-xs font-bold flex items-center justify-center gap-1 shadow transition active:scale-95"
+                  >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <span>Play</span>
+                  </button>
+                  <label
+                    title="Replace offline video"
+                    class="w-7 h-7 rounded-xl bg-white/[0.07] hover:bg-white/15 text-zinc-300 flex items-center justify-center cursor-pointer transition"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    <input type="file" accept="video/*,.mkv,.mp4,.webm" data-upload-ep="${ep}" class="hidden" />
+                  </label>
+                  <button
+                    data-delete-ep="${ep}"
+                    title="Delete video from app"
+                    class="w-7 h-7 rounded-xl bg-white/[0.07] hover:bg-rose-500/25 text-zinc-400 hover:text-rose-400 flex items-center justify-center text-xs transition"
+                  >
+                    ✕
+                  </button>
+                ` : `
+                  <label
+                    title="Import episode video from Gallery into Offline Vault"
+                    class="w-full py-1.5 px-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.11] text-[11px] font-medium text-zinc-300 hover:text-white cursor-pointer flex items-center justify-center gap-1.5 transition"
+                  >
+                    <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    <span>Add Video</span>
+                    <input type="file" accept="video/*,.mkv,.mp4,.webm" data-upload-ep="${ep}" class="hidden" />
+                  </label>
+                `}
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        // BITCHORD / APPLE MUSIC SLEEK TRACKLIST VIEW (Single unified glass card with hairline dividers, zero clutter)
+        epContainer.className = "rounded-2xl bg-white/[0.025] border border-white/[0.07] divide-y divide-white/[0.05] overflow-hidden";
+        for (let ep = 1; ep <= activeSeason.episodeCount; ep++) {
+          const isWatched = watchedSet.has(ep);
+          const vaultKey = `${anime.id}_s${anime.activeSeasonIndex}_ep${ep}`;
+          const hasVideo = vaultEpisodeKeys.has(vaultKey);
+          const epStr = String(ep).padStart(2, "0");
+
+          epHtml += `
+            <div class="flex items-center justify-between gap-3 px-3.5 py-2.5 hover:bg-white/[0.04] transition">
+              <div class="flex items-center gap-3 min-w-0">
+                <button
+                  data-toggle-ep="${ep}"
+                  title="${isWatched ? 'Watched ✓' : 'Unwatched ✕'}"
+                  class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition shrink-0 ${
+                    isWatched
+                      ? "bg-emerald-500 text-black"
+                      : "bg-white/[0.06] text-zinc-500 hover:text-white border border-white/10"
+                  }"
+                >
+                  ${isWatched ? "✓" : "✕"}
+                </button>
+                <span class="text-xs font-mono font-bold text-zinc-500 w-6">${epStr}</span>
+                <span class="text-xs font-semibold ${isWatched ? 'text-zinc-300' : 'text-white'} truncate">Episode ${ep}</span>
+                ${hasVideo ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold">Offline</span>` : ""}
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${hasVideo ? `
+                  <button
+                    data-play-ep="${ep}"
+                    class="px-3 py-1 rounded-full bg-orange-500 hover:bg-orange-400 text-black text-[11px] font-bold flex items-center gap-1 transition"
+                  >
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <span>Play</span>
+                  </button>
+                  <label title="Replace video" class="w-7 h-7 rounded-full bg-white/[0.06] hover:bg-white/15 text-zinc-300 flex items-center justify-center cursor-pointer transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    <input type="file" accept="video/*,.mkv,.mp4,.webm" data-upload-ep="${ep}" class="hidden" />
+                  </label>
+                  <button data-delete-ep="${ep}" title="Remove offline video" class="w-7 h-7 rounded-full bg-white/[0.06] hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 flex items-center justify-center text-xs transition">✕</button>
+                ` : `
+                  <label class="px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/15 text-[11px] font-medium text-zinc-300 cursor-pointer flex items-center gap-1 transition">
+                    <svg class="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    <span>Video</span>
+                    <input type="file" accept="video/*,.mkv,.mp4,.webm" data-upload-ep="${ep}" class="hidden" />
+                  </label>
+                `}
+              </div>
+            </div>
+          `;
+        }
+      }
+      epContainer.innerHTML = epHtml;
+
+      // Bind Episode Check / Cross Toggle
+      epContainer.querySelectorAll("[data-toggle-ep]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const epNum = parseInt(btn.getAttribute("data-toggle-ep"), 10);
+          const list = activeSeason.watchedEpisodes || [];
+          const idx = list.indexOf(epNum);
+          if (idx >= 0) {
+            list.splice(idx, 1);
+          } else {
+            list.push(epNum);
+            if (anime.status === "Unwatched") anime.status = "Watching";
+          }
+          activeSeason.watchedEpisodes = list;
+          saveAppState();
+          refreshDetailModalUI();
+        });
+      });
+
+      // Bind Video Upload to IndexedDB Vault
+      epContainer.querySelectorAll("[data-upload-ep]").forEach(input => {
+        input.addEventListener("change", async (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const epNum = parseInt(input.getAttribute("data-upload-ep"), 10);
+          const vaultKey = `${anime.id}_s${anime.activeSeasonIndex}_ep${epNum}`;
+          showToast(`Saving Episode ${epNum} to Offline Vault...`);
+          try {
+            await saveEpisodeVideoToVault(vaultKey, file);
+            const stats = await getAllVaultKeysAndStats();
+            vaultEpisodeKeys = stats.keys;
+            vaultStats = stats;
+            showToast(`Episode ${epNum} saved! Safe even if deleted from Gallery.`);
+            refreshDetailModalUI();
+            playEpisodeFromVault(anime, anime.activeSeasonIndex, epNum);
+          } catch (err) {
+            showToast("Storage error: Could not save video file.");
+          }
+        });
+      });
+
+      // Bind Play Episode
+      epContainer.querySelectorAll("[data-play-ep]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const epNum = parseInt(btn.getAttribute("data-play-ep"), 10);
+          playEpisodeFromVault(anime, anime.activeSeasonIndex, epNum);
+        });
+      });
+
+      // Bind Delete Episode Video from App
+      epContainer.querySelectorAll("[data-delete-ep]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const epNum = parseInt(btn.getAttribute("data-delete-ep"), 10);
+          const vaultKey = `${anime.id}_s${anime.activeSeasonIndex}_ep${epNum}`;
+          await deleteEpisodeVideoFromVault(vaultKey);
+          const stats = await getAllVaultKeysAndStats();
+          vaultEpisodeKeys = stats.keys;
+          vaultStats = stats;
+          if (currentPlayingVaultRecord && currentPlayingVaultRecord.key === vaultKey) {
+            stopInAppPlayer();
+          }
+          showToast(`Episode ${epNum} removed from app vault.`);
+          refreshDetailModalUI();
+        });
+      });
+    }
+
+    /*************************************************************************
+     * 8. IN-APP YOUTUBE AMBIENT LIGHT PLAYER & MX / VLC EXTERNAL LAUNCHER   *
+     *************************************************************************/
+    let ambientRafId = null;
+    let ambientEnabled = true;
+    let currentPlayingContext = { animeId: null, seasonIdx: 0, epNum: 1 };
+    const PLAYBACK_SPEEDS = [1.0, 1.25, 1.5, 2.0, 0.75];
+    let speedIndex = 0;
+
+    function startAmbientLightEngine() {
+      cancelAnimationFrame(ambientRafId);
+      const videoEl = document.getElementById("inAppVideo");
+      const canvas = document.getElementById("ambientLightCanvas");
+      if (!videoEl || !canvas) return;
+      const ctx = canvas.getContext("2d", { willReadFrequently: false });
+
+      function drawAmbientFrame() {
+        if (!ambientEnabled) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+        if (!videoEl.paused && !videoEl.ended && videoEl.readyState >= 2) {
+          try {
+            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+          } catch (_) {}
+        }
+        ambientRafId = requestAnimationFrame(drawAmbientFrame);
+      }
+      ambientRafId = requestAnimationFrame(drawAmbientFrame);
+    }
+
+    async function playEpisodeFromVault(anime, seasonIdx, epNum) {
+      const vaultKey = `${anime.id}_s${seasonIdx}_ep${epNum}`;
+      const record = await getEpisodeVideoFromVault(vaultKey);
+      if (!record || !record.blob) {
+        showToast("No offline video found for this episode.");
+        return;
+      }
+
+      stopInAppPlayer();
+      currentPlayingVaultRecord = record;
+      currentPlayingContext = { animeId: anime.id, seasonIdx, epNum };
+      activeVideoObjectUrl = URL.createObjectURL(record.blob);
+
+      const playerBox = document.getElementById("playerContainer");
+      const videoEl = document.getElementById("inAppVideo");
+      const seasonName = anime.seasons[seasonIdx] ? anime.seasons[seasonIdx].name : "Season 1";
+
+      document.getElementById("nowPlayingLabel").textContent =
+        `${anime.title} — ${seasonName} • Episode ${epNum} (${record.fileName})`;
+      document.getElementById("ytWatchTitle").textContent =
+        `${anime.title} — Episode ${epNum}`;
+      document.getElementById("ytWatchSub").textContent =
+        `${seasonName} • ${record.fileName} • Ambient Light for Cinema™ Active`;
+
+      playerBox.classList.remove("hidden");
+      videoEl.src = activeVideoObjectUrl;
+      videoEl.playbackRate = PLAYBACK_SPEEDS[speedIndex] || 1.0;
+
+      // Paint initial ambient frame as soon as metadata/frame loads
+      videoEl.onloadeddata = () => {
+        const canvas = document.getElementById("ambientLightCanvas");
+        if (canvas && ambientEnabled) {
+          try {
+            canvas.getContext("2d").drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+          } catch (_) {}
+        }
+        startAmbientLightEngine();
+      };
+      videoEl.onplay = () => startAmbientLightEngine();
+
+      videoEl.play().catch(() => {});
+
+      // Mark episode watched automatically on play
+      const season = anime.seasons[seasonIdx];
+      if (season) {
+        if (!season.watchedEpisodes.includes(epNum)) {
+          season.watchedEpisodes.push(epNum);
+        }
+        if (anime.status === "Unwatched") anime.status = "Watching";
+        saveAppState();
+        refreshDetailModalUI();
+      }
+    }
+
+    function stopInAppPlayer() {
+      cancelAnimationFrame(ambientRafId);
+      const playerBox = document.getElementById("playerContainer");
+      if (playerBox) playerBox.classList.remove("is-fullscreen");
+      const videoEl = document.getElementById("inAppVideo");
+      videoEl.pause();
+      videoEl.removeAttribute("src");
+      videoEl.load();
+      if (activeVideoObjectUrl) {
+        URL.revokeObjectURL(activeVideoObjectUrl);
+        activeVideoObjectUrl = null;
+      }
+      currentPlayingVaultRecord = null;
+      playerBox.classList.add("hidden");
+    }
+
+    // Launch External Player (MX Player / VLC / System Share Sheet for Offline Blobs)
+    async function launchExternalPlayer(targetPlayer) {
+      if (!currentPlayingVaultRecord || !currentPlayingVaultRecord.blob) {
+        showToast("Play an episode video first.");
+        return;
+      }
+
+      const blob = currentPlayingVaultRecord.blob;
+      const fileName = currentPlayingVaultRecord.fileName || "anime_episode.mp4";
+      const mimeType = currentPlayingVaultRecord.mimeType || "video/mp4";
+
+      // 1. Primary Method on Mobile PWA/Browsers: Native File Share Sheet (lets user pick VLC / MX Player directly with offline Blob!)
+      if (targetPlayer === "SHARE" && navigator.canShare) {
+        try {
+          const fileObj = new File([blob], fileName, { type: mimeType });
+          if (navigator.canShare({ files: [fileObj] })) {
+            await navigator.share({
+              title: fileName,
+              files: [fileObj]
+            });
+            return;
+          }
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+        }
+      }
+
+      // 2. Android Intent Deep Link for MX Player or VLC
+      const urlToOpen = activeVideoObjectUrl || URL.createObjectURL(blob);
+      if (targetPlayer === "MX") {
+        showToast("Opening MX Player (or select MX Player from system prompt)...");
+        if (navigator.canShare) {
+          try {
+            const fileObj = new File([blob], fileName, { type: mimeType });
+            if (navigator.canShare({ files: [fileObj] })) {
+              await navigator.share({ title: "Open in MX Player", files: [fileObj] });
+              return;
+            }
+          } catch (_) {}
+        }
+        const intentUrl = `intent:${urlToOpen}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`;
+        window.location.href = intentUrl;
+      } else if (targetPlayer === "VLC") {
+        showToast("Opening VLC Media Player...");
+        if (navigator.canShare) {
+          try {
+            const fileObj = new File([blob], fileName, { type: mimeType });
+            if (navigator.canShare({ files: [fileObj] })) {
+              await navigator.share({ title: "Open in VLC", files: [fileObj] });
+              return;
+            }
+          } catch (_) {}
+        }
+        const vlcIntent = `intent:${urlToOpen}#Intent;package=org.videolan.vlc;type=video/*;end`;
+        window.location.href = vlcIntent;
+      } else {
+        // Fallback direct file handoff so mobile OS prompts "Open with MX Player / VLC"
+        const a = document.createElement("a");
+        a.href = urlToOpen;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast("Video handed off to device media player.");
+      }
+    }
+
+    /*************************************************************************
+     * 9. FAST, VERIFIED ANILIST POSTER LOADER (BATCHED GRAPHQL)             *
+     *************************************************************************/
+    let isFetchingPosters = false;
+    let posterFetchProgress = { done: 0, total: 0 };
+
+    // Keep season / part / movie words intact: removing them can assign the
+    // poster for the wrong installment. Only normalize punctuation/spacing.
+    function normalizePosterTitle(value) {
+      return String(value || "").toLowerCase()
+        .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[×✕]/g, " x ").replace(/&/g, " and ")
+        .replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function isExactAniListPosterMatch(result, requestedTitle) {
+      if (!result) return false;
+      const wanted = normalizePosterTitle(requestedTitle);
+      if (!wanted) return false;
+      const names = [
+        result.title?.english,
+        result.title?.romaji,
+        result.title?.native,
+        ...(Array.isArray(result.synonyms) ? result.synonyms : [])
+      ].filter(Boolean);
+      return names.some(name => normalizePosterTitle(name) === wanted);
+    }
+
+    function updatePosterFetchLabel() {
+      const label = document.getElementById("syncBtnLabel");
+      if (!label) return;
+      label.textContent = isFetchingPosters
+        ? `Posters ${posterFetchProgress.done}/${posterFetchProgress.total}`
+        : "HD Posters";
+    }
+
+    function applyPosterToScreen(item, imageUrl) {
+      document.querySelectorAll("img[data-poster-title]").forEach(el => {
+        if (el.getAttribute("data-poster-title") === item.title) {
+          el.src = imageUrl;
+          el.loading = "lazy";
+          el.decoding = "async";
+        }
+      });
+      if (currentDetailAnimeId === item.id) {
+        const detailPoster = document.getElementById("detailPosterImg");
+        if (detailPoster) detailPoster.src = imageUrl;
+      }
+    }
+
+    function makeAniListBatchQuery(items) {
+      const variableDefs = items.map((_, i) => `$s${i}: String!`).join(", ");
+      const fields = items.map((_, i) =>
+        `p${i}: Media(search: $s${i}, type: ANIME, isAdult: false) {
+` +
+        `  id title { english romaji native } synonyms coverImage { large }
+` +
+        `}`
+      ).join("\n");
+      const variables = {};
+      items.forEach((item, i) => { variables[`s${i}`] = item.title; });
+      return { query: `query PosterBatch(${variableDefs}) {\n${fields}\n}`, variables };
+    }
+
+    async function fetchAniListBatch(items) {
+      const body = makeAniListBatchQuery(items);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        let response;
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000);
+          try {
+            response = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify(body),
+              signal: controller.signal,
+              cache: "no-store"
+            });
+          } finally {
+            clearTimeout(timeoutId);
+          }
+
+          if (response.status === 429) {
+            const resetAt = Number(response.headers.get("X-RateLimit-Reset") || 0);
+            const retryAfter = Number(response.headers.get("Retry-After") || 0);
+            let waitMs = retryAfter > 0 ? retryAfter * 1000 : 2500 * (attempt + 1);
+            if (resetAt > Date.now() / 1000) {
+              waitMs = Math.max(waitMs, (resetAt - Date.now() / 1000) * 1000 + 500);
+            }
+            await new Promise(resolve => setTimeout(resolve, Math.min(waitMs, 70000)));
+            continue;
+          }
+          if (!response.ok) {
+            if (response.status >= 500 && attempt < 2) {
+              await new Promise(resolve => setTimeout(resolve, 1400 * (attempt + 1)));
+              continue;
+            }
+            return null;
+          }
+          const payload = await response.json();
+          if (payload?.errors?.length && !payload?.data) {
+            if (attempt < 2) {
+              await new Promise(resolve => setTimeout(resolve, 1800 * (attempt + 1)));
+              continue;
+            }
+            return null;
+          }
+          return payload?.data || null;
+        } catch (_) {
+          if (!navigator.onLine || attempt === 2) return null;
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+      }
+      return null;
+    }
+
+    async function queueVisiblePosterFetches(force = false) {
+      if (isFetchingPosters) return;
+      const now = Date.now();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      const missing = animeList.filter(item => {
+        if (item.customPoster || KNOWN_POSTERS[item.title] || posterCache[item.title]) return false;
+        const failedAt = Number(posterMissCache[item.title] || 0);
+        if (force) {
+          delete posterMissCache[item.title];
+          return true;
+        }
+        return !failedAt || now - failedAt > sevenDays;
+      });
+
+      if (!missing.length) {
+        if (force) showToast("No additional exact poster matches were found.");
+        return;
+      }
+
+      isFetchingPosters = true;
+      posterFetchProgress = { done: 0, total: missing.length };
+      updatePosterFetchLabel();
+      showToast(`Finding accurate posters for ${missing.length} anime…`);
+
+      // One GraphQL request returns up to 30 anime records. The 2.2 s gap
+      // stays below AniList's currently reduced public request quota.
+      const batchSize = 30;
+      const batchGapMs = 2200;
+      let matched = 0;
+      let requestFailed = false;
+
+      try {
+        for (let offset = 0; offset < missing.length; offset += batchSize) {
+          if (offset > 0) await new Promise(resolve => setTimeout(resolve, batchGapMs));
+          const batch = missing.slice(offset, offset + batchSize);
+          const data = await fetchAniListBatch(batch);
+
+          if (!data) {
+            requestFailed = true;
+            posterFetchProgress.done += batch.length;
+            updatePosterFetchLabel();
+            continue;
+          }
+
+          batch.forEach((item, index) => {
+            const result = data[`p${index}`];
+            const imageUrl = isExactAniListPosterMatch(result, item.title)
+              ? (result.coverImage?.large || null)
+              : null;
+            if (imageUrl) {
+              posterCache[item.title] = imageUrl;
+              delete posterMissCache[item.title];
+              applyPosterToScreen(item, imageUrl);
+              matched++;
+            } else {
+              posterMissCache[item.title] = Date.now();
+            }
+          });
+
+          posterFetchProgress.done += batch.length;
+          updatePosterFetchLabel();
+          savePosterCache();
+          savePosterMissCache();
+        }
+      } finally {
+        isFetchingPosters = false;
+        updatePosterFetchLabel();
+        const ready = animeList.filter(item =>
+          item.customPoster || KNOWN_POSTERS[item.title] || posterCache[item.title]
+        ).length;
+        const notFound = animeList.length - ready;
+        if (requestFailed) {
+          showToast(`Loaded ${matched} new posters. Some searches failed; tap HD Posters to retry.`);
+        } else if (notFound) {
+          showToast(`Loaded ${ready}/${animeList.length} posters. ${notFound} titles had no exact match.`);
+        } else {
+          showToast(`All ${animeList.length} anime posters are ready.`);
+        }
+      }
+    }
+
+    window.addEventListener("online", () => {
+      if (!isFetchingPosters) setTimeout(() => queueVisiblePosterFetches(), 800);
+    });
+
+    /*************************************************************************
+     * 10. EVENT LISTENERS & INITIALIZATION                                  *
+     *************************************************************************/
+    function initEvents() {
+      // Search bar
+      const searchIn = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearSearchBtn");
+      searchIn.addEventListener("input", () => {
+        searchQuery = searchIn.value;
+        clearBtn.classList.toggle("hidden", !searchQuery);
+        renderMainGrid();
+        renderHeroSpotlight();
+      });
+      clearBtn.addEventListener("click", () => {
+        searchIn.value = "";
+        searchQuery = "";
+        clearBtn.classList.add("hidden");
+        renderMainGrid();
+        renderHeroSpotlight();
+      });
+
+      // Status filter chips
+      document.querySelectorAll(".status-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          activeStatusFilter = chip.getAttribute("data-status");
+          document.querySelectorAll(".status-chip").forEach(c => {
+            if (c.getAttribute("data-status") === activeStatusFilter) {
+              c.className = "status-chip px-3 py-1 rounded-full text-xs font-semibold bg-orange-500 text-black transition";
+            } else {
+              c.className = "status-chip px-3 py-1 rounded-full text-xs font-medium haze-card text-zinc-300 hover:text-white transition";
+            }
+          });
+          renderMainGrid();
+        });
+      });
+
+      // =========================================================================
+      // APPLE iOS 26 REAL-TIME 60FPS PHYSICS SPRING + INTERACTIVE DRAG-SLIDE DOCK
+      // =========================================================================
+      const liquidPill = document.getElementById("liquidActivePill");
+      const liquidDock = document.getElementById("liquidGlassDock");
+      const navButtons = Array.from(document.querySelectorAll(".nav-tab"));
+      const NAV_KEYS = ["HOME", "WEEKLY", "VAULT"];
+
+      let springX = 0;         // current position in % (0 = Play, 100 = Weekly, 200 = Vault)
+      let targetX = 0;         // target position in %
+      let velocityX = 0;       // current horizontal velocity
+      let springScaleY = 1;    // vertical droplet expansion when touched/dragged
+      let springRaf = null;
+      let isDraggingDock = false;
+
+      function runLiquidSpringLoop() {
+        cancelAnimationFrame(springRaf);
+        function step() {
+          // Hooke's Law underdamped spring for authentic Apple liquid bounce & velocity stretch
+          const stiffness = isDraggingDock ? 0.34 : 0.16;
+          const damping = isDraggingDock ? 0.62 : 0.74;
+
+          const force = (targetX - springX) * stiffness;
+          velocityX = (velocityX + force) * damping;
+          springX += velocityX;
+
+          // Velocity-driven horizontal liquid stretch & vertical bulge during slide
+          const speed = Math.min(28, Math.abs(velocityX));
+          const stretchX = 1 + (speed * 0.015) + (isDraggingDock ? 0.07 : 0);
+          const targetScaleY = isDraggingDock ? 1.12 : Math.max(0.88, 1 - (speed * 0.005));
+          springScaleY += (targetScaleY - springScaleY) * 0.25;
+
+          if (liquidPill) {
+            liquidPill.style.transform = `translate3d(${springX.toFixed(2)}%, 0, 0) scale(${stretchX.toFixed(3)}, ${springScaleY.toFixed(3)})`;
+          }
+          if (liquidDock) {
+            const glintPct = 16.6 + (springX / 200) * 66.8;
+            liquidDock.style.setProperty("--glint-x", `${glintPct.toFixed(1)}%`);
+          }
+
+          if (Math.abs(targetX - springX) > 0.08 || Math.abs(velocityX) > 0.08 || isDraggingDock) {
+            springRaf = requestAnimationFrame(step);
+          } else {
+            springX = targetX;
+            velocityX = 0;
+            if (liquidPill) {
+              liquidPill.style.transform = `translate3d(${springX}%, 0, 0) scale(1, 1)`;
+            }
+          }
+        }
+        springRaf = requestAnimationFrame(step);
+      }
+
+      function activateTabByIndex(newIdx, animateView = true) {
+        const clampedIdx = Math.max(0, Math.min(2, newIdx));
+        targetX = clampedIdx * 100;
+        const nextNav = NAV_KEYS[clampedIdx] || "HOME";
+        const changed = (activeNav !== nextNav);
+        activeNav = nextNav;
+
+        navButtons.forEach((t, i) => {
+          if (i === clampedIdx) {
+            t.className = "nav-tab is-active-tab py-2.5 px-3 rounded-full flex items-center justify-center gap-1.5 text-xs font-bold text-white";
+          } else {
+            t.className = "nav-tab py-2.5 px-3 rounded-full flex items-center justify-center gap-1.5 text-xs font-semibold text-white/60 hover:text-white/90";
+          }
+        });
+
+        runLiquidSpringLoop();
+
+        if (changed) {
+          if (animateView) {
+            const mainEl = document.querySelector("main");
+            if (mainEl && mainEl.animate) {
+              mainEl.animate([
+                { opacity: 0.55, transform: "translateY(8px) scale(0.992)" },
+                { opacity: 1, transform: "translateY(0) scale(1)" }
+              ], {
+                duration: 360,
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+              });
+            }
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+          renderAll();
+        }
+      }
+
+      // Click on any tab button
+      navButtons.forEach((tab, idx) => {
+        tab.addEventListener("click", () => {
+          activateTabByIndex(idx, true);
+        });
+      });
+
+      // Interactive Pointer/Touch Drag & Slide directly across the Liquid Glass Dock (just like iOS 26 Tab Bar!)
+      if (liquidDock) {
+        const updateFromPointer = (clientX) => {
+          const rect = liquidDock.getBoundingClientRect();
+          const relX = Math.max(0, Math.min(rect.width, clientX - rect.left));
+          // Map pointer X across the 3 slots (0% to 200%)
+          const pct = ((relX / rect.width) * 3 - 0.5) * 100;
+          targetX = Math.max(-8, Math.min(208, pct));
+          const nearestIdx = Math.max(0, Math.min(2, Math.round(targetX / 100)));
+          navButtons.forEach((t, i) => {
+            t.classList.toggle("is-active-tab", i === nearestIdx);
+          });
+          runLiquidSpringLoop();
+        };
+
+        liquidDock.addEventListener("pointerdown", (e) => {
+          isDraggingDock = true;
+          updateFromPointer(e.clientX);
+        });
+
+        window.addEventListener("pointermove", (e) => {
+          if (!isDraggingDock) return;
+          updateFromPointer(e.clientX);
+        });
+
+        const endDockDrag = () => {
+          if (!isDraggingDock) return;
+          isDraggingDock = false;
+          const snappedIdx = Math.max(0, Math.min(2, Math.round(targetX / 100)));
+          activateTabByIndex(snappedIdx, true);
+        };
+        window.addEventListener("pointerup", endDockDrag);
+        window.addEventListener("pointercancel", endDockDrag);
+      }
+
+      // Sync Posters button
+      document.getElementById("syncPostersBtn").addEventListener("click", () => {
+        queueVisiblePosterFetches(true);
+      });
+
+      // Detail Modal Close
+      document.getElementById("closeDetailBtn").addEventListener("click", closeAnimeDetail);
+      document.getElementById("detailModal").addEventListener("click", (e) => {
+        if (e.target.id === "detailModal") closeAnimeDetail();
+      });
+      document.getElementById("closePlayerBtn").addEventListener("click", stopInAppPlayer);
+
+      // External Player Buttons
+      document.getElementById("openMxPlayerBtn").addEventListener("click", () => launchExternalPlayer("MX"));
+      document.getElementById("openVlcPlayerBtn").addEventListener("click", () => launchExternalPlayer("VLC"));
+      document.getElementById("openSystemSharePlayerBtn").addEventListener("click", () => launchExternalPlayer("SHARE"));
+
+      // Ambient Light for YouTube™ Extension Popover & Sliders
+      const extPop = document.getElementById("ambientExtPopover");
+      document.getElementById("ambientExtMenuBtn").addEventListener("click", () => {
+        extPop.classList.toggle("hidden");
+      });
+      document.getElementById("closeAmbientExtBtn").addEventListener("click", () => {
+        extPop.classList.add("hidden");
+      });
+      document.getElementById("ambientToggleCheck").addEventListener("change", (e) => {
+        ambientEnabled = e.target.checked;
+        const canvas = document.getElementById("ambientLightCanvas");
+        const dot = document.getElementById("ambientStatusDot");
+        canvas.style.opacity = ambientEnabled ? (document.getElementById("ambientOpacitySlider").value / 100) : "0";
+        dot.className = ambientEnabled ? "w-1.5 h-1.5 rounded-full bg-emerald-400" : "w-1.5 h-1.5 rounded-full bg-zinc-500";
+        if (ambientEnabled) startAmbientLightEngine();
+        showToast(ambientEnabled ? "Ambient Light Enabled" : "Ambient Light Off");
+      });
+      document.getElementById("ambientBlurSlider").addEventListener("input", (e) => {
+        const px = e.target.value;
+        document.getElementById("ambientBlurVal").textContent = px + "px";
+        document.getElementById("ambientLightCanvas").style.filter = `blur(${px}px) saturate(215%) brightness(1.18)`;
+      });
+      document.getElementById("ambientOpacitySlider").addEventListener("input", (e) => {
+        const pct = e.target.value;
+        document.getElementById("ambientOpacityVal").textContent = pct + "%";
+        if (ambientEnabled) {
+          document.getElementById("ambientLightCanvas").style.opacity = (pct / 100).toFixed(2);
+        }
+      });
+
+      // YouTube-style Action Pills (Prev / Next / Speed / PiP / Theater)
+      document.getElementById("prevEpPlayerBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentPlayingContext.animeId);
+        if (!anime) return;
+        const targetEp = Math.max(1, currentPlayingContext.epNum - 1);
+        playEpisodeFromVault(anime, currentPlayingContext.seasonIdx, targetEp);
+      });
+      document.getElementById("nextEpPlayerBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentPlayingContext.animeId);
+        if (!anime) return;
+        const season = anime.seasons[currentPlayingContext.seasonIdx];
+        const maxEp = season ? season.episodeCount : 12;
+        const targetEp = Math.min(maxEp, currentPlayingContext.epNum + 1);
+        playEpisodeFromVault(anime, currentPlayingContext.seasonIdx, targetEp);
+      });
+      document.getElementById("speedCycleBtn").addEventListener("click", (e) => {
+        speedIndex = (speedIndex + 1) % PLAYBACK_SPEEDS.length;
+        const spd = PLAYBACK_SPEEDS[speedIndex];
+        const videoEl = document.getElementById("inAppVideo");
+        if (videoEl) videoEl.playbackRate = spd;
+        e.currentTarget.textContent = spd + "x";
+        showToast(`Playback speed: ${spd}x`);
+      });
+      document.getElementById("pipModeBtn").addEventListener("click", async () => {
+        const videoEl = document.getElementById("inAppVideo");
+        try {
+          if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+          } else if (videoEl && videoEl.requestPictureInPicture) {
+            await videoEl.requestPictureInPicture();
+          }
+        } catch (_) {
+          showToast("PiP not supported on this video frame.");
+        }
+      });
+      document.getElementById("theaterModeBtn").addEventListener("click", (e) => {
+        const stage = document.getElementById("ytAmbientStage");
+        stage.classList.toggle("theater-stage");
+        const isTheater = stage.classList.contains("theater-stage");
+        e.currentTarget.classList.toggle("text-orange-400", isTheater);
+        showToast(isTheater ? "Theater Stage Expanded" : "Standard Ambient Frame");
+      });
+
+      // Hybrid Fullscreen Engine (Works in both Native OS Fullscreen & Sandboxed Canvas Viewports)
+      async function toggleCinemaFullscreen() {
+        const playerBox = document.getElementById("playerContainer");
+        const videoEl = document.getElementById("inAppVideo");
+        if (!playerBox) return;
+
+        const isCurrentlyFs = playerBox.classList.contains("is-fullscreen") || Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+
+        if (isCurrentlyFs) {
+          playerBox.classList.remove("is-fullscreen");
+          if (document.fullscreenElement && document.exitFullscreen) {
+            try { await document.exitFullscreen(); } catch (_) {}
+          } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+            try { document.webkitExitFullscreen(); } catch (_) {}
+          }
+          document.getElementById("fsCornerLabel").textContent = "Fullscreen";
+          document.getElementById("fsPillLabel").textContent = "Fullscreen";
+          showToast("Exited Fullscreen");
+        } else {
+          // Always apply instant viewport-filling Ambient Fullscreen first so it works 100% even in restricted iframes
+          playerBox.classList.add("is-fullscreen");
+          document.getElementById("fsCornerLabel").textContent = "Exit Fullscreen";
+          document.getElementById("fsPillLabel").textContent = "Exit Full";
+
+          // Also attempt native OS fullscreen if permitted by browser/device
+          try {
+            if (playerBox.requestFullscreen) {
+              await playerBox.requestFullscreen();
+            } else if (playerBox.webkitRequestFullscreen) {
+              playerBox.webkitRequestFullscreen();
+            } else if (videoEl && videoEl.webkitEnterFullscreen) {
+              videoEl.webkitEnterFullscreen();
+            }
+          } catch (_) {
+            // Iframe blocks native OS fullscreen; CSS .is-fullscreen already fills 100vw x 100vh seamlessly!
+          }
+          showToast("Fullscreen Ambient Cinema Mode (Press Esc or Exit to return)");
+        }
+      }
+
+      document.getElementById("fullscreenModeBtn").addEventListener("click", toggleCinemaFullscreen);
+      document.getElementById("videoCornerFsBtn").addEventListener("click", toggleCinemaFullscreen);
+
+      // Custom Video Controls Binding (Replaces native browser controls so disabled fullscreen icon never renders)
+      const vid = document.getElementById("inAppVideo");
+      const playPauseBtn = document.getElementById("customPlayPauseBtn");
+      const playIcon = document.getElementById("customPlayIcon");
+      const pauseIcon = document.getElementById("customPauseIcon");
+      const seekSlider = document.getElementById("customVideoSeek");
+      const timeLabel = document.getElementById("customTimeDisplay");
+      const muteBtn = document.getElementById("customMuteBtn");
+      const volSlider = document.getElementById("customVolumeSlider");
+
+      function formatSec(sec) {
+        if (!isFinite(sec) || sec < 0) return "0:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s < 10 ? "0" : ""}${s}`;
+      }
+
+      function syncPlayPauseIcons() {
+        const isPaused = vid.paused || vid.ended;
+        playIcon.classList.toggle("hidden", !isPaused);
+        pauseIcon.classList.toggle("hidden", isPaused);
+      }
+
+      function toggleVideoPlay() {
+        if (vid.paused || vid.ended) {
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+        }
+      }
+
+      playPauseBtn.addEventListener("click", toggleVideoPlay);
+      vid.addEventListener("click", toggleVideoPlay);
+      vid.addEventListener("play", syncPlayPauseIcons);
+      vid.addEventListener("pause", syncPlayPauseIcons);
+      vid.addEventListener("ended", syncPlayPauseIcons);
+
+      vid.addEventListener("timeupdate", () => {
+        const cur = vid.currentTime || 0;
+        const dur = vid.duration || 0;
+        timeLabel.textContent = `${formatSec(cur)} / ${formatSec(dur)}`;
+        if (dur > 0) {
+          const val = Math.round((cur / dur) * 1000);
+          seekSlider.value = val;
+          const pct = (val / 10).toFixed(1);
+          seekSlider.style.background = `linear-gradient(to right, #f47521 ${pct}%, rgba(255,255,255,0.25) ${pct}%)`;
+        }
+      });
+
+      seekSlider.addEventListener("input", () => {
+        const dur = vid.duration || 0;
+        if (dur > 0) {
+          vid.currentTime = (seekSlider.value / 1000) * dur;
+        }
+      });
+
+      document.getElementById("customRewindBtn").addEventListener("click", () => {
+        vid.currentTime = Math.max(0, (vid.currentTime || 0) - 10);
+      });
+      document.getElementById("customForwardBtn").addEventListener("click", () => {
+        vid.currentTime = Math.min(vid.duration || 0, (vid.currentTime || 0) + 10);
+      });
+
+      muteBtn.addEventListener("click", () => {
+        vid.muted = !vid.muted;
+        muteBtn.classList.toggle("text-orange-400", vid.muted);
+      });
+      volSlider.addEventListener("input", () => {
+        vid.volume = parseFloat(volSlider.value);
+        vid.muted = (vid.volume === 0);
+      });
+
+      vid.addEventListener("dblclick", (e) => {
+        e.preventDefault();
+        toggleCinemaFullscreen();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const playerBox = document.getElementById("playerContainer");
+          if (playerBox && playerBox.classList.contains("is-fullscreen")) {
+            toggleCinemaFullscreen();
+          }
+        }
+      });
+
+      // Detail Status Change
+      document.querySelectorAll(".detail-status-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const anime = animeList.find(a => a.id === currentDetailAnimeId);
+          if (!anime) return;
+          anime.status = btn.getAttribute("data-set-status");
+          saveAppState();
+          refreshDetailModalUI();
+        });
+      });
+
+      // Detail Weekly Toggle & Day Change
+      document.getElementById("toggleWeeklyBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        anime.weekly = !anime.weekly;
+        saveAppState();
+        refreshDetailModalUI();
+        showToast(anime.weekly ? `Pinned to ${anime.weeklyDay}` : "Removed from Weekly list");
+      });
+
+      document.getElementById("weeklyDaySelect").addEventListener("change", (e) => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        anime.weeklyDay = e.target.value;
+        anime.weekly = true;
+        saveAppState();
+        refreshDetailModalUI();
+        showToast(`Scheduled for ${anime.weeklyDay}`);
+      });
+
+      // Custom Poster Upload inside Detail Modal
+      document.getElementById("customPosterInput").addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!file || !anime) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          anime.customPoster = reader.result;
+          saveAppState();
+          refreshDetailModalUI();
+          showToast("Custom poster updated!");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Toggle Edit Season Drawer & Grid/List View Mode Switcher
+      window.episodeViewMode = "GRID";
+      document.getElementById("toggleSeasonSettingsBtn").addEventListener("click", () => {
+        const drawer = document.getElementById("seasonConfigDrawer");
+        drawer.classList.toggle("hidden");
+      });
+      document.getElementById("viewModeGridBtn").addEventListener("click", () => {
+        window.episodeViewMode = "GRID";
+        document.getElementById("viewModeGridBtn").className = "px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white text-black transition";
+        document.getElementById("viewModeListBtn").className = "px-2.5 py-1 rounded-full text-[11px] font-semibold text-zinc-400 hover:text-white transition";
+        refreshDetailModalUI();
+      });
+      document.getElementById("viewModeListBtn").addEventListener("click", () => {
+        window.episodeViewMode = "LIST";
+        document.getElementById("viewModeListBtn").className = "px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white text-black transition";
+        document.getElementById("viewModeGridBtn").className = "px-2.5 py-1 rounded-full text-[11px] font-semibold text-zinc-400 hover:text-white transition";
+        refreshDetailModalUI();
+      });
+
+      // Add New Season inside Detail Modal
+      document.getElementById("addSeasonBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        const nameIn = document.getElementById("newSeasonNameInput");
+        const sName = nameIn.value.trim() || `Season ${anime.seasons.length + 1}`;
+        anime.seasons.push({
+          name: sName,
+          episodeCount: 12,
+          watchedEpisodes: []
+        });
+        anime.activeSeasonIndex = anime.seasons.length - 1;
+        nameIn.value = "";
+        saveAppState();
+        refreshDetailModalUI();
+        showToast(`Added "${sName}"`);
+      });
+
+      // Rename Current Season
+      document.getElementById("currentSeasonNameInput").addEventListener("change", (e) => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        const val = e.target.value.trim();
+        if (val) {
+          anime.seasons[anime.activeSeasonIndex].name = val;
+          saveAppState();
+          refreshDetailModalUI();
+        }
+      });
+
+      // Episode Count Stepper & Set Button
+      const epInput = document.getElementById("episodeCountInput");
+      document.getElementById("decEpCountBtn").addEventListener("click", () => {
+        epInput.value = Math.max(1, (parseInt(epInput.value, 10) || 1) - 1);
+      });
+      document.getElementById("incEpCountBtn").addEventListener("click", () => {
+        epInput.value = Math.min(1200, (parseInt(epInput.value, 10) || 12) + 1);
+      });
+      document.getElementById("applyEpCountBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        const count = Math.max(1, Math.min(1200, parseInt(epInput.value, 10) || 12));
+        anime.seasons[anime.activeSeasonIndex].episodeCount = count;
+        saveAppState();
+        refreshDetailModalUI();
+        showToast(`Episode count set to ${count}`);
+      });
+
+      // Mark All Watched in Active Season
+      document.getElementById("markAllWatchedBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        const s = anime.seasons[anime.activeSeasonIndex];
+        s.watchedEpisodes = Array.from({ length: s.episodeCount }, (_, i) => i + 1);
+        anime.status = "Completed";
+        saveAppState();
+        refreshDetailModalUI();
+        showToast(`Marked all ${s.episodeCount} episodes watched!`);
+      });
+
+      // Delete Active Season
+      document.getElementById("deleteSeasonBtn").addEventListener("click", () => {
+        const anime = animeList.find(a => a.id === currentDetailAnimeId);
+        if (!anime) return;
+        if (anime.seasons.length <= 1) {
+          showToast("At least one season must remain.");
+          return;
+        }
+        const removed = anime.seasons.splice(anime.activeSeasonIndex, 1);
+        anime.activeSeasonIndex = 0;
+        saveAppState();
+        refreshDetailModalUI();
+        showToast(`Deleted ${removed[0].name}`);
+      });
+
+      // Delete Entire Anime Title
+      document.getElementById("deleteAnimeBtn").addEventListener("click", () => {
+        const idx = animeList.findIndex(a => a.id === currentDetailAnimeId);
+        if (idx === -1) return;
+        const title = animeList[idx].title;
+        animeList.splice(idx, 1);
+        saveAppState();
+        closeAnimeDetail();
+        showToast(`Removed "${title}" from library`);
+      });
+
+      // Add New Custom Anime Modal
+      const addModal = document.getElementById("addAnimeModal");
+      const catSelect = document.getElementById("addCategorySelect");
+      catSelect.innerHTML = RAW_CATALOG.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+
+      document.getElementById("openAddAnimeBtn").addEventListener("click", () => {
+        addModal.classList.remove("hidden");
+        addModal.classList.add("flex");
+      });
+      const closeAdd = () => {
+        addModal.classList.add("hidden");
+        addModal.classList.remove("flex");
+      };
+      document.getElementById("closeAddAnimeBtn").addEventListener("click", closeAdd);
+      document.getElementById("cancelAddAnimeBtn").addEventListener("click", closeAdd);
+
+      document.getElementById("saveNewAnimeBtn").addEventListener("click", () => {
+        const title = document.getElementById("addTitleInput").value.trim();
+        if (!title) {
+          showToast("Please enter an anime title.");
+          return;
+        }
+        const catId = document.getElementById("addCategorySelect").value;
+        const catObj = RAW_CATALOG.find(c => c.id === catId) || RAW_CATALOG[0];
+        const status = document.getElementById("addStatusSelect").value;
+        const sName = document.getElementById("addSeasonInput").value.trim() || "Season 1";
+        const epCount = Math.max(1, parseInt(document.getElementById("addEpCountInput").value, 10) || 12);
+        const weekly = document.getElementById("addWeeklyCheck").checked;
+        const fileIn = document.getElementById("addPosterFileInput");
+        const file = fileIn.files && fileIn.files[0];
+
+        const finalizeAdd = (customPosterDataUrl) => {
+          const newAnime = {
+            id: "anime_custom_" + Date.now(),
+            title,
+            categoryId: catObj.id,
+            categoryName: catObj.name,
+            categoryShort: catObj.short,
+            colors: catObj.color,
+            status,
+            weekly,
+            weeklyDay: "Saturday",
+            customPoster: customPosterDataUrl || null,
+            activeSeasonIndex: 0,
+            seasons: [
+              {
+                name: sName,
+                episodeCount: epCount,
+                watchedEpisodes: []
+              }
+            ]
+          };
+          animeList.unshift(newAnime);
+          saveAppState();
+          document.getElementById("addTitleInput").value = "";
+          fileIn.value = "";
+          closeAdd();
+          renderAll();
+          showToast(`Added "${title}" to ${catObj.short}!`);
+        };
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => finalizeAdd(reader.result);
+          reader.readAsDataURL(file);
+        } else {
+          finalizeAdd(null);
+        }
+      });
+    }
+
+    // Boot Application
+    loadAppState();
+    initEvents();
+    renderAll();
+  </script>
+</body>
+</html>
