@@ -427,6 +427,13 @@
     .ambient-backdrop { opacity: .25; filter: blur(88px); }
 
     .app-header {
+      /* Keep brand + search reachable while the catalog scrolls on Android WebView. */
+      position: -webkit-sticky !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 1000 !important;
+      align-self: stretch;
+      isolation: isolate;
       padding-top: max(13px, env(safe-area-inset-top));
       padding-bottom: 13px;
       background: linear-gradient(180deg, rgba(8,8,12,.96), rgba(8,8,12,.84) 76%, rgba(8,8,12,.60));
@@ -434,6 +441,9 @@
       box-shadow: 0 12px 34px rgba(0,0,0,.20);
       backdrop-filter: blur(26px) saturate(155%);
       -webkit-backdrop-filter: blur(26px) saturate(155%);
+      /* Solid fallback prevents the sticky layer from flickering during fast scroll. */
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
 
     .app-header-inner, .workspace-main { max-width: 1320px; }
