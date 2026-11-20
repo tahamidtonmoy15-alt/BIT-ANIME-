@@ -1997,6 +1997,7 @@
         const g = GENRES.find(x => x.id === activeCategory);
         heading.textContent = g ? g.name : "Catalog Library";
       }
+
       let list = animeList.filter(a => {
         if (activeNav === "WATCHING" && a.status !== "Watching") return false;
         if (activeCategory !== "ALL" && a.categoryId !== activeCategory) return false;
