@@ -239,12 +239,12 @@ jobs:
           ./gradlew --no-daemon assembleDebug
           cp app/build/outputs/apk/debug/app-debug.apk ../BitAnime-Pro-v12.2.apk
           BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
-          "$BUILD_TOOLS/apksigner" verify --verbose ../BitAnime-Pro-v12.1.apk
+          "$BUILD_TOOLS/apksigner" verify --verbose ../BitAnime-Pro-v12.2.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: BitAnime-Pro-v12.2-APK
-          path: BitAnime-Pro-v12.1.apk
+          path: BitAnime-Pro-v12.2.apk
           if-no-files-found: error
           retention-days: 30
