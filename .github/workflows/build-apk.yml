@@ -1,4 +1,4 @@
-name: Build BitAnime.pro v12.1 APK
+name: Build BitAnime.pro v12.2 APK
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout v12.1 source
+      - name: Checkout v12.2 source
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -46,6 +46,11 @@ jobs:
           cat index-html-v121-patch/*.txt | base64 --decode > update-v121.patch.br
           node -e "const fs=require('fs'),z=require('zlib');fs.writeFileSync('update-v121.patch',z.brotliDecompressSync(fs.readFileSync('update-v121.patch.br')));"
           patch --batch --forward -p1 < update-v121.patch
+          cat index-html-v122-patch/*.txt | base64 --decode > update-v122.patch.br
+          node -e "const fs=require('fs'),z=require('zlib');fs.writeFileSync('update-v122.patch',z.brotliDecompressSync(fs.readFileSync('update-v122.patch.br')));"
+          patch --batch --forward -p1 < update-v122.patch
+          grep -q "api.tenrai.org/v1/anime" index.html
+          if grep -q "api.jikan.moe" index.html; then echo "Retired Jikan endpoint still present"; exit 1; fi
           grep -q "HINDI_DUB_CATALOG" index.html
           grep -q "Hindi Dubbed Anime" index.html
           test -s index.html
@@ -232,14 +237,14 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk ../BitAnime-Pro-v12.1.apk
+          cp app/build/outputs/apk/debug/app-debug.apk ../BitAnime-Pro-v12.2.apk
           BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
           "$BUILD_TOOLS/apksigner" verify --verbose ../BitAnime-Pro-v12.1.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BitAnime-Pro-v12.1-APK
+          name: BitAnime-Pro-v12.2-APK
           path: BitAnime-Pro-v12.1.apk
           if-no-files-found: error
           retention-days: 30
