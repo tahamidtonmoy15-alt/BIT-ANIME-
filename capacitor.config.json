@@ -1,0 +1,8 @@
+{
+  "appId": "com.bitanime.pro",
+  "appName": "BitAnime.pro",
+  "webDir": "www",
+  "backgroundColor": "#06090f",
+  "server": { "androidScheme": "https", "cleartext": true },
+  "android": { "allowMixedContent": true, "backgroundColor": "#06090f" }
+}

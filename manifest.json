@@ -1,0 +1,9 @@
+{
+  "name": "BitAnime.pro v12",
+  "short_name": "BitAnime.pro",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#06090f",
+  "theme_color": "#06090f",
+  "orientation": "portrait-primary"
+}
