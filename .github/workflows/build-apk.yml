@@ -1,4 +1,4 @@
-name: Build BitAnime.pro v12 APK
+name: Build BitAnime.pro v12.1 APK
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout v12 source
+      - name: Checkout v12.1 source
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -38,32 +38,208 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Restore exact BitAnime v12 HTML
+      - name: Restore original v12 and apply mobile/catalog improvements
         run: |
           set -euo pipefail
-          cat index-html-parts/*.txt | base64 --decode > index.html.br
-          node -e "const fs=require('fs');const z=require('zlib');fs.writeFileSync('index.html',z.brotliDecompressSync(fs.readFileSync('index.html.br')));"
+          cat index-html-parts/*.txt | base64 --decode > original-v12.html.br
+          node -e "const fs=require('fs'),z=require('zlib');fs.writeFileSync('index.html',z.brotliDecompressSync(fs.readFileSync('original-v12.html.br')));"
+          cat index-html-v121-patch/*.txt | base64 --decode > update-v121.patch.br
+          node -e "const fs=require('fs'),z=require('zlib');fs.writeFileSync('update-v121.patch',z.brotliDecompressSync(fs.readFileSync('update-v121.patch.br')));"
+          patch --batch --forward -p1 < update-v121.patch
+          grep -q "HINDI_DUB_CATALOG" index.html
+          grep -q "Hindi Dubbed Anime" index.html
           test -s index.html
 
-      - name: Build Android APK
+      - name: Prepare Capacitor Android project
         run: |
           set -euo pipefail
           mkdir -p www
           cp index.html www/index.html
           cp manifest.json www/manifest.json
-          npm install --no-audit --no-fund @capacitor/core@7 @capacitor/android@7
-          npm install --no-save --no-audit --no-fund @capacitor/cli@7
+          npm install --no-audit --no-fund @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
           npx cap add android
           npx cap copy android
+
+      - name: Add native video chooser bridge and Android permissions
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, re, textwrap
+
+          manifest_path = "android/app/src/main/AndroidManifest.xml"
+          manifest = open(manifest_path, encoding="utf-8").read()
+
+          if "usesCleartextTraffic" not in manifest:
+              manifest = manifest.replace(
+                  "<application",
+                  '<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"',
+                  1
+              )
+
+          if 'android:configChanges="' in manifest:
+              manifest = re.sub(
+                  r'android:configChanges="[^"]*"',
+                  'android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"',
+                  manifest
+              )
+
+          provider = textwrap.dedent('''\
+              <provider
+                  android:name="androidx.core.content.FileProvider"
+                  android:authorities="${applicationId}.fileprovider"
+                  android:exported="false"
+                  android:grantUriPermissions="true">
+                  <meta-data
+                      android:name="android.support.FILE_PROVIDER_PATHS"
+                      android:resource="@xml/file_paths" />
+              </provider>
+          ''').rstrip()
+
+          if "androidx.core.content.FileProvider" not in manifest:
+              manifest = manifest.replace("</application>", provider + "\n        </application>", 1)
+
+          open(manifest_path, "w", encoding="utf-8").write(manifest)
+
+          xml_dir = "android/app/src/main/res/xml"
+          os.makedirs(xml_dir, exist_ok=True)
+          with open(os.path.join(xml_dir, "file_paths.xml"), "w", encoding="utf-8") as f:
+              f.write('''<?xml version="1.0" encoding="utf-8"?>
+          <paths xmlns:android="http://schemas.android.com/apk/res/android">
+              <cache-path name="shared_videos" path="shared_videos/" />
+              <cache-path name="cache_root" path="." />
+          </paths>
+          ''')
+
+          java_path = "android/app/src/main/java/com/bitanime/pro/MainActivity.java"
+          os.makedirs(os.path.dirname(java_path), exist_ok=True)
+          java_src = r'''package com.bitanime.pro;
+
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.util.Base64;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.WebView;
+          import androidx.core.content.FileProvider;
+          import com.getcapacitor.BridgeActivity;
+          import java.io.File;
+          import java.io.FileOutputStream;
+          import java.util.Map;
+          import java.util.UUID;
+          import java.util.concurrent.ConcurrentHashMap;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  if (getBridge() != null && getBridge().getWebView() != null) {
+                      WebView webView = getBridge().getWebView();
+                      webView.addJavascriptInterface(new BitAnimeNativeBridge(), "BitAnimeAndroid");
+                  }
+              }
+
+              private class BitAnimeNativeBridge {
+                  private final Map<String, File> pendingFiles = new ConcurrentHashMap<>();
+
+                  @JavascriptInterface
+                  public String beginLocalVideo(String fileName) {
+                      try {
+                          File dir = new File(getCacheDir(), "shared_videos");
+                          if (!dir.exists() && !dir.mkdirs()) return "";
+                          String safe = (fileName == null || fileName.isEmpty())
+                              ? "episode.mp4"
+                              : fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+                          String id = UUID.randomUUID().toString().replace("-", "");
+                          File out = new File(dir, id + "_" + safe);
+                          if (out.exists() && !out.delete()) return "";
+                          pendingFiles.put(id, out);
+                          return id;
+                      } catch (Exception e) {
+                          return "";
+                      }
+                  }
+
+                  @JavascriptInterface
+                  public void appendLocalVideoChunk(String sessionId, String base64Data) {
+                      try {
+                          File out = pendingFiles.get(sessionId);
+                          if (out == null || base64Data == null || base64Data.isEmpty()) return;
+                          byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
+                          try (FileOutputStream fos = new FileOutputStream(out, true)) {
+                              fos.write(bytes);
+                              fos.flush();
+                          }
+                      } catch (Exception ignored) {}
+                  }
+
+                  @JavascriptInterface
+                  public boolean finishAndOpenLocalVideo(String sessionId, String mimeType, String title) {
+                      try {
+                          File out = pendingFiles.remove(sessionId);
+                          if (out == null || !out.exists() || out.length() == 0) return false;
+                          Uri uri = FileProvider.getUriForFile(
+                              MainActivity.this, getPackageName() + ".fileprovider", out
+                          );
+                          Intent intent = new Intent(Intent.ACTION_VIEW);
+                          intent.setDataAndType(
+                              uri,
+                              (mimeType != null && !mimeType.isEmpty()) ? mimeType : "video/*"
+                          );
+                          intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                          Intent chooser = Intent.createChooser(
+                              intent,
+                              (title != null && !title.isEmpty()) ? "Open " + title + " with" : "Open video with"
+                          );
+                          chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                          startActivity(chooser);
+                          return true;
+                      } catch (Exception e) {
+                          return false;
+                      }
+                  }
+
+                  @JavascriptInterface
+                  public boolean openVideoUrl(String url, String title) {
+                      try {
+                          if (url == null || !(url.startsWith("https://") || url.startsWith("http://") || url.startsWith("content://"))) {
+                              return false;
+                          }
+                          Intent intent = new Intent(Intent.ACTION_VIEW);
+                          intent.setDataAndType(Uri.parse(url), "video/*");
+                          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                          Intent chooser = Intent.createChooser(
+                              intent,
+                              (title != null && !title.isEmpty()) ? "Open " + title + " stream with" : "Open stream with"
+                          );
+                          chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                          startActivity(chooser);
+                          return true;
+                      } catch (Exception e) {
+                          return false;
+                      }
+                  }
+              }
+          }
+          '''
+          with open(java_path, "w", encoding="utf-8") as f:
+              f.write(java_src)
+          print("Native BitAnime video bridge and FileProvider configured.")
+          PY
+
+      - name: Build debug APK
+        run: |
+          set -euo pipefail
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk ../BitAnime-Pro-v12.apk
+          ./gradlew --no-daemon assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk ../BitAnime-Pro-v12.1.apk
+          BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/apksigner" verify --verbose ../BitAnime-Pro-v12.1.apk
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BitAnime-Pro-v12-APK
-          path: BitAnime-Pro-v12.apk
+          name: BitAnime-Pro-v12.1-APK
+          path: BitAnime-Pro-v12.1.apk
           if-no-files-found: error
           retention-days: 30

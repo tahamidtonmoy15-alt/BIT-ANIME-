@@ -1,14 +1,17 @@
-# BitAnime.pro v12
+# BitAnime.pro v12.1
 
-This repository has been replaced with the **BitAnime.pro v12** project from the uploaded ZIP. No earlier BitAnime/NOVA app source is included.
+This repository contains the BitAnime.pro v12 project with the v12.1 mobile usability and catalogue update.
 
-The web app source is stored in the numbered Base64 chunks under `index-html-parts/` to keep the GitHub upload manageable. The GitHub Actions workflow restores the exact HTML file before building the Android app with Capacitor 7.
+## Included in v12.1
+- Mobile-first header and horizontally scrollable genre navigation, avoiding clipped controls on narrow screens.
+- Refined hero spotlight layout for mobile screens, with a compact poster and readable title/details/actions.
+- A separate Hindi Dubbed Anime catalogue with 251 preserved historical entries, grouped/filterable by genre and dub status.
+- Smooth, lightweight UI transitions and reduced-motion support.
+- Existing public catalogue/poster providers remain enabled (AniList GraphQL, Jikan and AnimeThemes). These public endpoints do not require a private API key.
+- Android native video chooser bridge for compatible local-file / stream handoff to installed players such as VLC or MX Player.
 
-## Build APK
+The 251 catalogue entries retain the original status labels; they are not a guarantee that every title/season is currently available in Hindi on every service.
 
-1. Open the **Actions** tab.
-2. Select **Build BitAnime.pro v12 APK**.
-3. Open the successful run and download the `BitAnime-Pro-v12-APK` artifact.
-4. Extract and install `BitAnime-Pro-v12.apk`.
-
-The workflow builds a debug-signed APK, which is installable on Android. The default Capacitor launcher icon is used because the original image assets are not part of this lean source-only upload.
+## Build
+A push to `main` or a manual workflow run builds an installable debug-signed APK.
+Open the GitHub **Actions** tab, select **Build BitAnime.pro v12.1 APK**, then download the `BitAnime-Pro-v12.1-APK` artifact from a successful run.
